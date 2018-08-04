@@ -85,7 +85,8 @@ const translator = new Translator();
 translator.mergeLocalization('ja', localization); //Load the localization
 translator.setLocale('ja'); //Tell the translator to use it
 
-const translated = translator.__('to be translated'); //Translate!
+const translated = translator.__('I love fish'); //Translate!
+const translated = translator.__n('There is a fish in the pond.', 'There are %d fish in the pond', 3); //Translate!
 ```
 
 Use the translations with a library like y18n by doing:
