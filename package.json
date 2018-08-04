@@ -1,5 +1,5 @@
 {
-    "name": "translation-static-analyzer",
+    "name": "@zakkudo/translation-static-analyzer",
     "version": "0.0.1",
     "description": "A webpack plugin for generating localization files using static analysis of source files similar to gettext",
     "keywords": [
