@@ -246,7 +246,7 @@ module.exports = class TranslationStaticAnalyzer {
             const localizationHasTranslation = hasTranslation(localization[k]);
             const templateHasProperty = template.hasOwnProperty(k);
 
-            if (!templateHasProperty && localizationHasProperty && localizationHasTranslation) {
+            if (!templateHasProperty && localizationHasTranslation) {
                 return Object.assign({}, accumulator, {
                     [k]: {
                         note: 'unused',
@@ -254,7 +254,7 @@ module.exports = class TranslationStaticAnalyzer {
                         data: localization[k]
                     }
                 });
-            } else if (templateHasProperty && (!localizationHasProperty || !localizationHasTranslation)) {
+            } else if (templateHasProperty && !localizationHasTranslation) {
                 return Object.assign({}, accumulator, {
                     [k]: {
                         note: 'new',
