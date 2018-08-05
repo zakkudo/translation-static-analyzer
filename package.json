@@ -35,7 +35,7 @@
         "cover": "scripts/cover.sh",
         "document": "scripts/document.sh",
         "lint": "scripts/lint.sh",
-        "public": "scripts/publish.sh",
+        "deploy ": "scripts/deploy.sh",
         "test": "scripts/test.sh"
     }
 }
