@@ -24,6 +24,7 @@ function pop(stack) {
  * @param {Number} lineNumber - The current line number
  * @return {Object} The updated read state which can be passed back into
  * readCharacter to read the next state
+ * @private
  */
 function readCharacter(text, {index, stack, lineNumber}) {
     const character = text.charAt(index);

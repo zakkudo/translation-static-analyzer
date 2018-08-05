@@ -3,6 +3,7 @@
  * @param {*} data - An object that is spidered looking for
  * non-empty translation strings
  * @return {Boolean} true if a translation exists
+ * @private
  */
 module.exports = function hasTranslation(data) {
     const keys = Object.keys(data);

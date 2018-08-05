@@ -40,6 +40,7 @@ function continueUntilStackLengthIs(text, state, length) {
  * @param {Number} lineNumber - The current line number
  * @return {Object} An object with the translation key and function, as well
  * as the new index after the translation function
+ * @private
  */
 module.exports = function parseLocalizationFunction(text, {index, stack, lineNumber}) {
     const functionStart = {index, stack, lineNumber};

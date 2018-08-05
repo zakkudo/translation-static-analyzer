@@ -25,6 +25,7 @@ function readCharacterWithErrorHandling(text, state) {
  * that one character.
  * @param {String} text - The source code
  * @return {Array<String>} The strings
+ * @private
  */
 module.exports = function readString(text) {
     const localization = {};

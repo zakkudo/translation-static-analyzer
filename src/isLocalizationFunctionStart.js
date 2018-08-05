@@ -14,6 +14,7 @@ const length = translationStartPatterns
  * localization function
  * @return {Boolean} true if the index is the start of a y18n style
  * translation function
+ * @private
  */
 module.exports = function isLocalizationStart(text, {index}) {
     const testString = text.substring(index, index + length);

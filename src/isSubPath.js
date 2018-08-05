@@ -3,6 +3,7 @@
  * @param {String} path - The parent path
  * @param {String} subPath - The child path
  * @return {Boolean} true if it is a subpath.
+ * @private
  */
 module.exports = function isSubPath(path, subPath) {
     return subPath.startsWith(path) &&
