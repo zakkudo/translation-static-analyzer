@@ -1,6 +1,6 @@
 {
     "name": "@zakkudo/translation-static-analyzer",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "description": "A webpack plugin for generating localization files using static analysis of source files similar to gettext",
     "keywords": [
         "translate",
@@ -10,6 +10,7 @@
     "files": [
         "build/**/*"
     ],
+    "repository": "github:zakkudo/translation-static-analyzer",
     "license": "BSD-3-Clause",
     "devDependencies": {
         "@babel/cli": "^7.0.0-beta.56",
