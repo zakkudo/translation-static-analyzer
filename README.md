@@ -3,6 +3,9 @@
 ## TranslationStaticAnalyzer
 A library for scanning javscript files to build translation mappings in json automatically.
 
+[![Build Status](https://travis-ci.org/zakkudo/translation-static-analyzer.svg?branch=master)](https://travis-ci.org/zakkudo/translation-static-analyzer)
+[![Coverage Status](https://coveralls.io/repos/github/zakkudo/translation-static-analyzer/badge.svg?branch=master)](https://coveralls.io/github/zakkudo/translation-static-analyzer?branch=master)
+
 Why use this?
 
 - You no longer have to manage hierarchies of translations
