@@ -34,7 +34,7 @@ no fuss and apply the translations.
 ```js
 const TranslationStaticAnalyzer = require('@zakkudo/translation-static-analyzer');
 const analyzer = new TransalationStaticAnalyzer({
-    files: 'src/**\/*.js', // Analyzes all javscript files in the src directory
+    files: 'src/**/*.js', // Analyzes all javscript files in the src directory
     debug: true, // Enables verbose output
     locales: ['fr', 'en'], // generate a locales/fr.json as well as a locales/en.json
     target: 'src' // Each page in the folder will get it's own subset of translations
@@ -45,7 +45,7 @@ analyzer.update();
 ```js
 const TranslationStaticAnalyzer = require('@zakkudo/translation-static-analyzer');
 const analyzer = new TransalationStaticAnalyzer({
-    files: 'src/**\/*.js', // Analyzes all javscript files in the src directory
+    files: 'src/**/*.js', // Analyzes all javscript files in the src directory
     debug: true, // Enables verbose output
     locales: ['fr', 'en'], // generate a locales/fr.json as well as a locales/en.json
     target: 'src/pages/*' // Each page in the folder will get it's own subset of translations
