@@ -20,4 +20,8 @@ describe('hasTranslation', () => {
     it('returns false for emtpy deep value', () => {
         expect(hasTranslation({a: {b: ''}})).toBe(false);
     });
+
+    it('returns false for string', () => {
+        expect(hasTranslation('test text')).toBe(false);
+    });
 });

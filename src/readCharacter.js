@@ -23,6 +23,7 @@ function pop(stack) {
  * @param {Array<String>} stack - The current code stack
  * @param {Number} lineNumber - The current line number
  * @return {Object} The updated read state which can be passed back into
+ * @throws Syntax
  * readCharacter to read the next state
  * @private
  */
@@ -31,9 +32,14 @@ function readCharacter(text, {index, stack, lineNumber}) {
     let head = stack[0];
     const escaped = isEscapeCharacter(head);
     let localization;
+    let testString;
 
 
     if (character === '') {
+        while (head === '//') {
+            ({head, stack} = pop(stack));
+        }
+
         if (stack.length) {
             throw new SyntaxError(
                 'text ended with unclosed stack items',
@@ -129,7 +135,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
             }
             break;
         case '/':
-            const testString = text.substring(index, index + 2);
+            testString = text.substring(index, index + 2);
 
             if (!escaped && testString === '//') {
                 ({head, stack} = push(stack, testString));
