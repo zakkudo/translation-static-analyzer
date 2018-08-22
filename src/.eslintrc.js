@@ -7,7 +7,8 @@ module.exports = {
         "jasmine": true
     },
     "plugins": [
-        "jasmine"
+        "jasmine",
+        "jest"
     ],
     "parserOptions": {
         "ecmaVersion": 6,
