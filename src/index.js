@@ -69,7 +69,7 @@ function calculateTargetFiles(targetDirectories, all) {
 /**
  * @private
  */
-function calculateFiles(modifiedFiles, options = {}) {
+function calculateFiles(modifiedFiles, options) {
     const {files, target} = options;
     const all = glob.sync(files);
     const hasModifiedFiles = Boolean(modifiedFiles.length);
@@ -111,7 +111,7 @@ function serializeLocalizationWithMetaData(localizationWithMetadata) {
  * @private
  */
 function getTemplateDirectory() {
-    const options = this.options || {};
+    const options = this.options;
 
     return options.directory || './locales';
 }
@@ -150,7 +150,7 @@ function writeLocalizationWithMetadata(locale, localization) {
     const directory = getTemplateDirectory.call(this);
     const filename = `${directory}/${locale}.json`;
     const serialized = serializeLocalizationWithMetaData(localization);
-    const options = this.options || {};
+    const options = this.options;
 
     if (options.debug) {
         print('Writing localization for', filename, localization);
@@ -209,7 +209,7 @@ function updateLocalization(localization) {
  * @private
  */
 function generateLocaleFiles() {
-    const options = this.options || {};
+    const options = this.options;
     const locales = options.locales || [];
     const localizationByLanguage = this.localizationByLanguage = new Map();
 
@@ -241,7 +241,7 @@ function clear() {
 function parseSourceFiles() {
     const files = this.files.modified;
     const filenamesByKey = this.filenamesByKey = new Map();
-    const options = this.options || {};
+    const options = this.options;
 
     clear.call(this);
 
@@ -287,7 +287,7 @@ function parseSourceFiles() {
  * @private
  */
 function writeToTargets() {
-    const options = this.options || {};
+    const options = this.options;
     const locales = options.locales || [];
     const filesByTargetDirectory = this.files.target.filesByTargetDirectory;
     const targetDirectories = Object.keys(filesByTargetDirectory);
@@ -431,13 +431,13 @@ module.exports = class TranslationStaticAnalyzer {
             name: 'template',
         };
 
-        this.options = options;
+        this.options = options || {};
         this.sourceByFilename = new Map();
         this.keysByFilename = new Map();
         this.filenamesByKey = new Map();
         this.localizationByLanguage = new Map();
 
-        if (options.debug) {
+        if (this.options.debug) {
             print('Creating locale gen directory', localeGen.directory);
         }
 

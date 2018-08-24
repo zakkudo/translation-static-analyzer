@@ -29,7 +29,7 @@ fdescribe('TranslationStaticAnalyzer', () => {
             delete mocks[k];
         });
 
-        fs.actions.length = 0;
+        fs.mockReset();
     });
 
     it('works with defaults for language with some prefilled data', () => {
@@ -55,7 +55,6 @@ fdescribe('TranslationStaticAnalyzer', () => {
 
         analyzer.update();
 
-        global.console.log(JSON.stringify(mocks.consoleLog.calls, null, 4));
         expect(mocks.consoleLog.mock.calls).toEqual([
             [
                 "translate-static-analyzer: Creating locale gen directory",
@@ -131,6 +130,44 @@ fdescribe('TranslationStaticAnalyzer', () => {
         });
 
         analyzer.update();
+
+        expect(fs.actions).toEqual(newExpected);
+    });
+
+    it("rethrows exception when error is not because it doesn't exist", () => {
+        const analyzer = new TranslationStaticAnalyzer({
+            files: 'test files',
+            locales: ['new'],
+            target: 'test directory targets',
+            //templates: ''
+        });
+
+        fs.readFileSync.mockImplementation((filename) => {
+            if (filename.endsWith('index.js')) {
+                return '';
+            }
+
+            const e = new Error("MockError: Filename doesn't exist");
+            e.code = 'TEST ERROR';
+            throw e;
+        });
+
+        expect(() => analyzer.update()).toThrow(new Error("MockError: Filename doesn't exist"));
+    });
+
+    it("runs gracefully with no options", () => {
+        new TranslationStaticAnalyzer();
+    });
+
+    it("passing an empty files array will update everything", () => {
+        const analyzer = new TranslationStaticAnalyzer({
+            files: 'test files',
+            locales: ['new'],
+            target: 'test directory targets',
+            //templates: ''
+        });
+
+        analyzer.update([]);
 
         expect(fs.actions).toEqual(newExpected);
     });
