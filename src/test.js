@@ -8,7 +8,7 @@ const newExpected = require('./new.expected.json');
 jest.mock('path');
 jest.mock('glob');
 jest.mock('fs-extra');
-jest.mock('console');
+//jest.mock('console');
 
 const mocks = {};
 
@@ -17,7 +17,7 @@ const path = require('path');
 fdescribe('TranslationStaticAnalyzer', () => {
     beforeEach(() => {
         mocks.processOn = jest.spyOn(process, 'on');
-        mocks.consoleLog = jest.spyOn(console, 'log');
+        //mocks.consoleLog = jest.spyOn(console, 'log');
 
 		path.resolve.mockImplementation((...parts) => {
             return `${parts.join('/')}`;
@@ -31,6 +31,26 @@ fdescribe('TranslationStaticAnalyzer', () => {
         });
 
         fs.mockReset();
+    });
+
+    it('calls cleanup on exit', () => {
+        const analyzer = new TranslationStaticAnalyzer({
+            files: 'test files',
+            locales: ['existing'],
+            target: 'test directory targets',
+            //templates: ''
+        });
+
+        const exitCallback = mocks.processOn.mock.calls[0];
+        const sigIntCallback = mocks.processOn.mock.calls[1];
+
+        expect(exitCallback[0]).toEqual('exit');
+        expect(sigIntCallback[0]).toEqual('SIGINT');
+
+        exitCallback[1]();
+        sigIntCallback[1]();
+
+        expect(fs.removeSync.mock.calls).toEqual([["/test/tmp/0"], ["/test/tmp/0"]]);
     });
 
     it('works with defaults for language with some prefilled data', () => {
@@ -126,6 +146,27 @@ fdescribe('TranslationStaticAnalyzer', () => {
             ],
         ]);
         */
+    });
+
+    it("rethrows unknown exception reading file", () => {
+        const analyzer = new TranslationStaticAnalyzer({
+            files: 'test files',
+            locales: ['existing'],
+            target: 'test directory targets',
+            //templates: ''
+        });
+
+        fs.readFileSync.mockImplementation((filename) => {
+            if (filename.endsWith('.json')) {
+                const e = new Error("MockError: readFileSync issue");
+                e.code = 'TEST ERROR';
+                throw e;
+            }
+
+            return '';
+        });
+
+        expect(() => analyzer.update()).toThrow(new Error("MockError: readFileSync issue"));
     });
 
     it('works with defaults for language with no prefilled data', () => {

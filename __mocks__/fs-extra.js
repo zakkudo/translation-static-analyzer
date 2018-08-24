@@ -14,7 +14,8 @@ fs.mockReset = () => {
     filesystem = JSON.parse(JSON.stringify(originalFileSystem));
     increment = 0;
 
-    fs.mkdirSync.mockImplementation(() => 0);
+    fs.ensureDirSync.mockImplementation(() => 0);
+    fs.removeSync.mockImplementation(() => 0);
 
     fs.statSync.mockImplementation((filename) => {
         return {

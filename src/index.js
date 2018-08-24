@@ -25,6 +25,9 @@ function print(message, ...leftover) {
  * @private
  */
 function cleanup() {
+    const localeGen = this.localeGen;
+
+    fs.removeSync(localeGen.directory);
 }
 
 /**
@@ -250,32 +253,29 @@ function parseSourceFiles() {
         const metadata = readString(contents);
         const keysByFilename = this.keysByFilename;
         const sourceByFilename = this.sourceByFilename;
+        const keys = Object.keys(metadata);
+        const {__, __n} = this.instance;
 
-        if (metadata) {
-            const keys = Object.keys(metadata);
-            const {__, __n} = this.instance;
+        Object.values(metadata).forEach((v) => {
+            try {
+                eval(v.fn);
+            } catch(e) {
+                console.warn(e);
+            }
+        });
 
-            Object.values(metadata).forEach((v) => {
-                try {
-                    eval(v.fn);
-                } catch(e) {
-                    console.warn(e);
-                }
-            });
+        keys.forEach((k) => {
+            const {lineNumber} = metadata[k];
 
-            keys.forEach((k) => {
-                const {lineNumber} = metadata[k];
+            if (!filenamesByKey.has(k)) {
+                filenamesByKey.set(k, new Set());
+            }
 
-                if (!filenamesByKey.has(k)) {
-                    filenamesByKey.set(k, new Set());
-                }
+            filenamesByKey.get(k).add(`${m}:${lineNumber}`);
+        });
 
-                filenamesByKey.get(k).add(`${m}:${lineNumber}`);
-            });
-
-            sourceByFilename.set(m, contents);
-            keysByFilename.set(m, new Set(keys));
-        }
+        sourceByFilename.set(m, contents);
+        keysByFilename.set(m, new Set(keys));
     });
 
     if (options.debug) {
