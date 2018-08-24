@@ -72,18 +72,21 @@ function calculateTargetFiles(targetDirectories, all) {
 /**
  * @private
  */
-function calculateFiles(modifiedFiles, options) {
+function calculateFiles(modifiedFiles = [], options) {
     const {files, target} = options;
     const all = glob.sync(files);
     const hasModifiedFiles = Boolean(modifiedFiles.length);
+    const allAsSet = new Set(all);
     const modifiedFilesAsSet = new Set(modifiedFiles);
     const modified = hasModifiedFiles ? all.filter((a) => modifiedFilesAsSet.has(a)) : all;
+    const removed = modifiedFiles.filter((f) => !allAsSet.has(f));
     const targetDirectories = glob.sync(target).filter((t) => fs.statSync(t).isDirectory());
     const filesByTargetDirectory = calculateTargetFiles(targetDirectories, all);
 
     return {
         all,
         modified,
+        removed,
         target: {
             targetDirectories,
             filesByTargetDirectory,
@@ -460,9 +463,18 @@ module.exports = class TranslationStaticAnalyzer {
             print('Updating localization keys for', JSON.stringify(files.modified, null, 4));
         }
 
-        if (files.modified.length) {
+        if (files.removed.length) {
+            files.removed.forEach((f) => {
+                this.sourceByFilename.delete(f);
+                this.keysByFilename.delete(f);
+            });
+        }
 
+        if (files.modified.length) {
             parseSourceFiles.call(this);
+        }
+
+        if (files.modified.length || files.removed.length) {
             generateLocaleFiles.call(this);
             writeToTargets.call(this);
         }

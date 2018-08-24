@@ -43,6 +43,7 @@ module.exports = {
     './locales/existing.json': JSON.stringify({
         "Search": "検索",
         "test unused key": "test value",
+        "Application": "アプリケーション",
     }),
     'src/pages/About/.locales/existing.json': JSON.stringify({}),
     'src/pages/Search/.locales/existing.json': JSON.stringify({'Search': ''}),

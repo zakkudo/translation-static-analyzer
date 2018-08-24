@@ -1,5 +1,5 @@
-
 jest.mock('os');
+
 const fs = jest.genMockFromModule('fs-extra');
 const originalFileSystem = require('./filesystem');
 let increment = 0;
@@ -23,6 +23,10 @@ fs.mockReset = () => {
                 return !filename.endsWith('.js');
             }
         };
+    });
+
+    fs.unlinkSync.mockImplementation((filename) => {
+        delete filesystem[filename];
     });
 
     fs.writeFileSync.mockImplementation((filename, data) => {

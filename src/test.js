@@ -1,6 +1,6 @@
 const TranslationStaticAnalyzer = require('.');
 const fs = require('fs-extra');
-const console = require('console');
+//const console = require('console');
 
 const existingExpected = require('./existing.expected.json');
 const newExpected = require('./new.expected.json');
@@ -8,7 +8,7 @@ const newExpected = require('./new.expected.json');
 jest.mock('path');
 jest.mock('glob');
 jest.mock('fs-extra');
-jest.mock('console');
+//jest.mock('console');
 
 const mocks = {};
 
@@ -17,7 +17,7 @@ const path = require('path');
 fdescribe('TranslationStaticAnalyzer', () => {
     beforeEach(() => {
         mocks.processOn = jest.spyOn(process, 'on');
-        mocks.consoleLog = jest.spyOn(console, 'log');
+        //mocks.consoleLog = jest.spyOn(console, 'log');
 
 		path.resolve.mockImplementation((...parts) => {
             return `${parts.join('/')}`;
@@ -69,11 +69,37 @@ fdescribe('TranslationStaticAnalyzer', () => {
 
         //expect(fs.actions).toEqual(existingExpected);
 
-
-        //TODOCheck if removes delete file, updates modified file, and create new file
         analyzer.update(['pages/Search/index.js']);
 
         //expect(fs.actions).toEqual(existingExpected);
+    });
+
+    describe('update', () => {
+        it('updates, removing file', () => {
+            const analyzer = new TranslationStaticAnalyzer({
+                files: 'test files',
+                locales: ['existing'],
+                target: 'test directory targets',
+                //templates: ''
+            });
+
+            analyzer.update();
+
+            fs.actions.length = 0;
+            fs.unlinkSync('src/pages/Search/index.js');
+            analyzer.options.files = 'test removed file';
+            analyzer.options.target = 'test removed directory target';
+
+            analyzer.update(['src/pages/Search/index.js']);
+
+            //expect(fs.actions).toEqual([]);
+        });
+
+        it('updates, adding file', () => {
+        });
+
+        it('updates, updating file', () => {
+        });
     });
 
     it('records debugging information', () => {
