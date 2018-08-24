@@ -22,6 +22,13 @@ glob.sync.mockImplementation((pattern) => {
             'src/application',
             'src/pages/About',
         ];
+    } else if (pattern === 'test added directory target') {
+        return [
+            'src/pages',
+            'src/application',
+            'src/pages/About',
+            'src/pages/Added',
+        ];
     } else if (pattern === 'test directory targets') {
         return [
             'src/pages',

@@ -72,7 +72,7 @@ function calculateTargetFiles(targetDirectories, all) {
 /**
  * @private
  */
-function calculateFiles(modifiedFiles = [], options) {
+function calculateFiles(modifiedFiles, options) {
     const {files, target} = options;
     const all = glob.sync(files);
     const hasModifiedFiles = Boolean(modifiedFiles.length);
@@ -119,7 +119,11 @@ function serializeLocalizationWithMetaData(localizationWithMetadata) {
 function getTemplateDirectory() {
     const options = this.options;
 
-    return options.directory || './locales';
+    if (options.templates) {
+        return path.resolve(options.templates, 'locales');
+    }
+
+    return './locales';
 }
 
 /**
