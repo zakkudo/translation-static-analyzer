@@ -1,6 +1,6 @@
 
 jest.mock('os');
-const fs = jest.genMockFromModule('fs');
+const fs = jest.genMockFromModule('fs-extra');
 const originalFileSystem = require('./filesystem');
 let increment = 0;
 
@@ -13,6 +13,8 @@ fs.mockReset = () => {
 
     filesystem = JSON.parse(JSON.stringify(originalFileSystem));
     increment = 0;
+
+    fs.mkdirSync.mockImplementation(() => 0);
 
     fs.statSync.mockImplementation((filename) => {
         return {

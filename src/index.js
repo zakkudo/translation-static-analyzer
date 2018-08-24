@@ -1,6 +1,6 @@
 const JSON5 = require('json5');
 const equal = require('deep-equal');
-const fs = require('fs');
+const fs = require('fs-extra');
 const glob = require('glob');
 const os = require('os');
 const path = require('path');
@@ -192,16 +192,14 @@ function updateLocalization(localization) {
                     data: template[k]
                 }
             });
-        } else if (templateHasProperty && localizationHasProperty) {
-            return Object.assign({}, accumulator, {
-                [k]: {
-                    files,
-                    data: localization[k]
-                }
-            });
         }
 
-        return accumulator;
+        return Object.assign({}, accumulator, {
+            [k]: {
+                files,
+                data: localization[k]
+            }
+        });
     }, {});
 }
 
@@ -212,6 +210,8 @@ function generateLocaleFiles() {
     const options = this.options;
     const locales = options.locales || [];
     const localizationByLanguage = this.localizationByLanguage = new Map();
+
+    fs.ensureDirSync(getTemplateDirectory.call(this));
 
     locales.forEach((l) => {
         const localization = readLocalization.call(this, l) || {};
@@ -295,15 +295,11 @@ function writeToTargets() {
     const keysByFilename = this.keysByFilename;
 
     targetDirectories.forEach((t) => {
-        const directory = path.resolve(t, '.locales'); //Intentianally a hidden directory
+        // This is intentionally a hidden directory. It should generally not be included
+        // with git.
+        const directory = path.resolve(t, '.locales');
 
-        try {
-            fs.mkdirSync(directory);
-        } catch(e) {
-            if (e.code !== 'EEXIST') {
-                console.error(e);
-            }
-        }
+        fs.ensureDirSync(directory)
 
         locales.forEach((l) => {
             const filenames = filesByTargetDirectory[t] || [];

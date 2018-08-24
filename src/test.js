@@ -1,5 +1,5 @@
 const TranslationStaticAnalyzer = require('.');
-const fs = require('fs');
+const fs = require('fs-extra');
 const console = require('console');
 
 const existingExpected = require('./existing.expected.json');
@@ -7,8 +7,9 @@ const newExpected = require('./new.expected.json');
 
 jest.mock('path');
 jest.mock('glob');
-jest.mock('fs');
+jest.mock('fs-extra');
 jest.mock('console');
+
 const mocks = {};
 
 const path = require('path');
@@ -138,61 +139,6 @@ fdescribe('TranslationStaticAnalyzer', () => {
         analyzer.update();
 
         //expect(fs.actions).toEqual(newExpected);
-    });
-
-    it("rethrows exception when error is not because it doesn't exist", () => {
-        const analyzer = new TranslationStaticAnalyzer({
-            files: 'test files',
-            locales: ['new'],
-            target: 'test directory targets',
-            //templates: ''
-        });
-
-        fs.readFileSync.mockImplementation((filename) => {
-            if (filename.endsWith('index.js')) {
-                return '';
-            }
-
-            const e = new Error("MockError: Filename doesn't exist");
-            e.code = 'TEST ERROR';
-            throw e;
-        });
-
-        //expect(() => analyzer.update()).toThrow(new Error("MockError: Filename doesn't exist"));
-    });
-
-    it("rethrows exception when error for creating folder if error is not for already existing", () => {
-        const analyzer = new TranslationStaticAnalyzer({
-            files: 'test files',
-            locales: ['new'],
-            target: 'test directory targets',
-            //templates: ''
-        });
-
-        fs.mkdirSync.mockImplementationOnce((filename) => {
-            const e = new Error("MockError: Filename doesn't exist");
-            e.code = 'TEST ERROR';
-            throw e;
-        });
-
-        //expect(() => analyzer.update()).toThrow(new Error("MockError: Filename doesn't exist"));
-    });
-
-    it("rethrows exception when error for creating folder if error is already existing", () => {
-        const analyzer = new TranslationStaticAnalyzer({
-            files: 'test files',
-            locales: ['new'],
-            target: 'test directory targets',
-            //templates: ''
-        });
-
-        fs.mkdirSync.mockImplementationOnce((filename) => {
-            const e = new Error("MockError: Filename doesn't exist");
-            e.code = 'EEXIST';
-            throw e;
-        });
-
-        //expect(() => analyzer.update()).toThrow(new Error("MockError: Filename doesn't exist"));
     });
 
     it("runs gracefully with no options", () => {
