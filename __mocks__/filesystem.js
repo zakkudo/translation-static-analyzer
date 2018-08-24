@@ -38,6 +38,7 @@ module.exports = {
     'src/pages/Search/index.js': SearchPage,
     'src/pages/About/index.js': AboutPage,
     'src/pages/Empty/index.js': EmptyPage,
+    'src/test.js': EmptyPage,
     'src/index.js': Application,
     './locales/existing.json': JSON.stringify({
         "Search": "検索",

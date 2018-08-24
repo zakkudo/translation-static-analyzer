@@ -8,7 +8,7 @@ const newExpected = require('./new.expected.json');
 jest.mock('path');
 jest.mock('glob');
 jest.mock('fs-extra');
-//jest.mock('console');
+jest.mock('console');
 
 const mocks = {};
 
@@ -17,7 +17,7 @@ const path = require('path');
 fdescribe('TranslationStaticAnalyzer', () => {
     beforeEach(() => {
         mocks.processOn = jest.spyOn(process, 'on');
-        //mocks.consoleLog = jest.spyOn(console, 'log');
+        mocks.consoleLog = jest.spyOn(console, 'log');
 
 		path.resolve.mockImplementation((...parts) => {
             return `${parts.join('/')}`;
@@ -66,6 +66,12 @@ fdescribe('TranslationStaticAnalyzer', () => {
         //expect(fs.actions).toEqual(existingExpected);
 
         analyzer.update();
+
+        //expect(fs.actions).toEqual(existingExpected);
+
+
+        //TODOCheck if removes delete file, updates modified file, and create new file
+        analyzer.update(['pages/Search/index.js']);
 
         //expect(fs.actions).toEqual(existingExpected);
     });

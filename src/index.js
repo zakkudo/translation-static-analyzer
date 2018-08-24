@@ -302,7 +302,7 @@ function writeToTargets() {
         fs.ensureDirSync(directory)
 
         locales.forEach((l) => {
-            const filenames = filesByTargetDirectory[t] || [];
+            const filenames = filesByTargetDirectory[t];
             const localization = localizationByLanguage.get(l);
             const subLocalization = {};
             const filename = path.resolve(directory, `${l}.json`);
@@ -312,7 +312,7 @@ function writeToTargets() {
             }
 
             filenames.forEach((f) => {
-                const keys = keysByFilename.get(f) || new Set();
+                const keys = keysByFilename.get(f);
 
                 keys.forEach((k) => {
                     if (localization.hasOwnProperty(k) && hasTranslation(localization[k])) {
