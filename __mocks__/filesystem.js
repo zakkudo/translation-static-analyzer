@@ -5,11 +5,13 @@ export default class AboutPage extends Component {
      }
 
     static get template() {
-         return <div>Welcome to the about page!</div>';
+         return <div>{{__('Search')}} Welcome to the about page!</div>';
 
     }
 };
 `.trim();
+
+const EmptyPage = ``.trim();
 
 const SearchPage = `
 export default class SearchPage extends Component {
@@ -18,7 +20,7 @@ export default class SearchPage extends Component {
      }
 
     static get template() {
-         return '<div>{{__n('%s result', '%s results', 2)}}</div>';
+         return '{{__('invalid''string')}} <div>{{__n('%s result', '%s results', 2)}}</div>';
 
     }
 };
@@ -35,6 +37,7 @@ export default class Application extends Component {
 module.exports = {
     'src/pages/Search/index.js': SearchPage,
     'src/pages/About/index.js': AboutPage,
+    'src/pages/Empty/index.js': EmptyPage,
     'src/index.js': Application,
     './locales/existing.json': JSON.stringify({
         "Search": "検索",
