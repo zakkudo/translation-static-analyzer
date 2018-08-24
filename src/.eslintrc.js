@@ -4,7 +4,8 @@ module.exports = {
         "plugin:node/recommended"
     ],
     "env": {
-        "jasmine": true
+        "jasmine": true,
+        "jest/globals": true
     },
     "plugins": [
         "jasmine",
@@ -17,6 +18,7 @@ module.exports = {
         }
     },
     "rules": {
-        'max-len': ["error", { "code": 100, "comments": 120 }]
+        'max-len': ["error", { "code": 100, "comments": 120 }],
+        "no-console": "off"
     }
 };

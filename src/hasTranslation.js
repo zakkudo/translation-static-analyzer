@@ -20,6 +20,8 @@ module.exports = function hasTranslation(data) {
                 return hasTranslation(data[k]);
             }
         });
+    } else if (typeof data === 'string') {
+        return Boolean(data.length);
     }
 
     return false;

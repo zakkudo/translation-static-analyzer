@@ -22,6 +22,6 @@ describe('hasTranslation', () => {
     });
 
     it('returns false for string', () => {
-        expect(hasTranslation('test text')).toBe(false);
+        expect(hasTranslation('test text')).toBe(true);
     });
 });
