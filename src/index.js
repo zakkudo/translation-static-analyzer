@@ -11,7 +11,7 @@ const scrubLocalization = require('./scrubLocalization');
 const readString = require('./readString');
 const isSubPath = require('./isSubPath');
 
-const name = 'translate-static-analyzer';
+const name = 'translation-static-analyzer';
 
 /**
  * @private
@@ -74,14 +74,16 @@ function calculateTargetFiles(targetDirectories, all) {
  */
 function calculateFiles(modifiedFiles, options) {
     const {files, target} = options;
-    const all = glob.sync(files);
+    const all = glob.sync(files).map((a) => path.resolve(a));
     const hasModifiedFiles = Boolean(modifiedFiles.length);
     const allAsSet = new Set(all);
-    const modifiedFilesAsSet = new Set(modifiedFiles);
-    const modified = hasModifiedFiles ? all.filter((a) => modifiedFilesAsSet.has(a)) : all;
+    const modified = hasModifiedFiles ? modifiedFiles.filter((f) => allAsSet.has(f)) : all;
     const removed = modifiedFiles.filter((f) => !allAsSet.has(f));
     const targetDirectories = glob.sync(target).filter((t) => fs.statSync(t).isDirectory());
     const filesByTargetDirectory = calculateTargetFiles(targetDirectories, all);
+
+    print('requested files:', JSON.stringify(modifiedFiles, null, 4));
+    print('files:', JSON.stringify({all, modified, removed}, null, 4));
 
     return {
         all,
@@ -100,13 +102,16 @@ function calculateFiles(modifiedFiles, options) {
 function serializeLocalizationWithMetaData(localizationWithMetadata) {
     const keys = Object.keys(localizationWithMetadata);
     const length = keys.length;
+    const templateDirectory = path.resolve(getTemplateDirectory.call(this), '..');
 
     return keys.reduce((serialized, k, i) => {
         const hasMore = i < length - 1;
         const indent = '    ';
         const note = localizationWithMetadata[k].note;
         const formattedNote = note ? `${indent}// ${note.toUpperCase()}\n` : '';
-        const files = localizationWithMetadata[k].files;
+        const files = localizationWithMetadata[k].files.map((f) => {
+            return path.relative(templateDirectory, f)
+        });
         const formattedFiles = files.length ? `${indent}// ` + files.join(`\n${indent}// `) + '\n' : '';
 
         return `${serialized}${formattedNote}${formattedFiles}${indent}"${k}": ${JSON.stringify(localizationWithMetadata[k].data)}${hasMore ? ',' : ''}\n`;
@@ -159,7 +164,7 @@ function readLocalization(locale) {
 function writeLocalizationWithMetadata(locale, localization) {
     const directory = getTemplateDirectory.call(this);
     const filename = `${directory}/${locale}.json`;
-    const serialized = serializeLocalizationWithMetaData(localization);
+    const serialized = serializeLocalizationWithMetaData.call(this, localization);
     const options = this.options;
 
     if (options.debug) {
@@ -182,7 +187,6 @@ function updateLocalization(localization) {
 
     return keys.reduce((accumulator, k) => {
         const files = [...(filenamesByKey.get(k) || fallbackFiles)].sort();
-        const localizationHasProperty = localization.hasOwnProperty(k);
         const localizationHasTranslation = hasTranslation(localization[k]);
         const templateHasProperty = template.hasOwnProperty(k);
 
@@ -202,14 +206,16 @@ function updateLocalization(localization) {
                     data: template[k]
                 }
             });
+        } else if (templateHasProperty && localizationHasTranslation) {
+            return Object.assign({}, accumulator, {
+                [k]: {
+                    files,
+                    data: localization[k]
+                }
+            });
         }
 
-        return Object.assign({}, accumulator, {
-            [k]: {
-                files,
-                data: localization[k]
-            }
-        });
+        return accumulator;
     }, {});
 }
 
@@ -217,20 +223,31 @@ function updateLocalization(localization) {
  * @private
  */
 function generateLocaleFiles() {
+    const files = this.files;
     const options = this.options;
     const locales = options.locales || [];
     const localizationByLanguage = this.localizationByLanguage = new Map();
+    let changed = false;
 
     fs.ensureDirSync(getTemplateDirectory.call(this));
 
     locales.forEach((l) => {
         const localization = readLocalization.call(this, l) || {};
-        const localizationWithMetadata = updateLocalization.call(this, localization);
+        const nextLocalizationWithMetadata = updateLocalization.call(this, localization);
+        const pairs = Object.entries(nextLocalizationWithMetadata);
+        const nextLocalization = pairs.reduce((accumulator, [k, v]) => {
+            return Object.assign({}, accumulator, {[k]: v.data});
+        }, {});
 
-        localizationByLanguage.set(l, localization);
+        localizationByLanguage.set(l, nextLocalization);
 
-        writeLocalizationWithMetadata.call(this, l, localizationWithMetadata);
+        if (!equal(localization, nextLocalization) || files.removed.length) {
+            writeLocalizationWithMetadata.call(this, l, nextLocalizationWithMetadata);
+            changed = true;
+        }
     });
+
+    return changed;
 }
 
 /**
@@ -240,26 +257,23 @@ function clear() {
     try {
         fs.unlinkSync(this.template.name);
     } catch (e) {
+        // No content
     }
 
     this.instance.cache.template = {};
 }
 
-/**
- * @private
- */
-function parseSourceFiles() {
-    const files = this.files.modified;
+function rebuildCache() {
     const filenamesByKey = this.filenamesByKey = new Map();
     const options = this.options;
+    const sourceByFilename = this.sourceByFilename;
 
     clear.call(this);
 
-    files.forEach((m) => {
-        const contents = String(fs.readFileSync(m));
+    this.files.all.forEach((m) => {
+        const contents = sourceByFilename.get(m);
         const metadata = readString(contents);
         const keysByFilename = this.keysByFilename;
-        const sourceByFilename = this.sourceByFilename;
         const keys = Object.keys(metadata);
         const {__, __n} = this.instance;
 
@@ -281,13 +295,29 @@ function parseSourceFiles() {
             filenamesByKey.get(k).add(`${m}:${lineNumber}`);
         });
 
-        sourceByFilename.set(m, contents);
         keysByFilename.set(m, new Set(keys));
     });
 
     if (options.debug) {
         print('Parsed keys', JSON.stringify(Array.from(filenamesByKey.keys()), null, 4));
     }
+}
+
+/**
+ * @private
+ */
+function parseSourceFiles() {
+    const files = this.files.modified;
+    const sourceByFilename = this.sourceByFilename;
+
+    files.forEach((m) => {
+        try {
+            const contents = String(fs.readFileSync(m));
+            sourceByFilename.set(m, contents);
+        } catch (e) {
+            sourceByFilename.delete(m);
+        }
+    });
 }
 
 /**
@@ -461,7 +491,16 @@ module.exports = class TranslationStaticAnalyzer {
      */
     update(modifiedFiles = []) {
         const options = this.options;
-        const files = this.files = calculateFiles(modifiedFiles, options)
+        const locales = options.locales || [];
+        const files = this.files = calculateFiles(modifiedFiles.map((m) => path.resolve(m)), options)
+
+        if (!locales.length) {
+            console.warn(
+                "This library isn't particularly usefull " +
+                "if you don't request any locales to be generated."
+            );
+            return;
+        }
 
         if (options.debug) {
             print('Updating localization keys for', JSON.stringify(files.modified, null, 4));
@@ -478,9 +517,12 @@ module.exports = class TranslationStaticAnalyzer {
             parseSourceFiles.call(this);
         }
 
+        rebuildCache.call(this);
+
         if (files.modified.length || files.removed.length) {
-            generateLocaleFiles.call(this);
-            writeToTargets.call(this);
+            if (generateLocaleFiles.call(this)) {
+                writeToTargets.call(this);
+            }
         }
 
         if (options.debug) {

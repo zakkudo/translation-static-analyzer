@@ -49,5 +49,8 @@
         "lint": "scripts/lint.sh",
         "deploy": "scripts/deploy.sh",
         "test": "scripts/test.sh"
+    },
+    "engines": {
+        "node": ">=8.0.0"
     }
 }
