@@ -225,7 +225,7 @@ function updateLocalization(localization) {
 function generateLocaleFiles() {
     const files = this.files;
     const options = this.options;
-    const locales = options.locales || [];
+    const locales = options.locales;
     const localizationByLanguage = this.localizationByLanguage = new Map();
     let changed = false;
 
@@ -325,7 +325,7 @@ function parseSourceFiles() {
  */
 function writeToTargets() {
     const options = this.options;
-    const locales = options.locales || [];
+    const locales = options.locales;
     const filesByTargetDirectory = this.files.target.filesByTargetDirectory;
     const targetDirectories = Object.keys(filesByTargetDirectory);
     const localizationByLanguage = this.localizationByLanguage;
