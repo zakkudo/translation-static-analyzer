@@ -207,14 +207,16 @@ function updateLocalization(localization) {
                     data: template[k]
                 }
             });
+        } else if (templateHasProperty && localizationHasTranslation) {
+            return Object.assign({}, accumulator, {
+                [k]: {
+                    files,
+                    data: localization[k]
+                }
+            });
         }
-        // TODO ?? is this a problem?
-        return Object.assign({}, accumulator, {
-            [k]: {
-                files,
-                data: localization[k]
-            }
-        });
+
+        return accumulator;
     }, {});
 }
 

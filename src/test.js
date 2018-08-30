@@ -181,35 +181,32 @@ describe('TranslationStaticAnalyzer', () => {
 
             analyzer.update(['src/pages/Search/index.js']);
 
-console.log(JSON.stringify(fs.actions, null, 4));
-
-
 			expect(fs.actions).toEqual([
-				{
-					"action": "read",
-					"filename": "./locales/existing.json",
-					"data": "{\n    // NEW\n    // \n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
-				},
-				{
-					"action": "write",
-					"filename": "./locales/existing.json",
-					"data": "{\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
-				},
-				{
-					"action": "read",
-					"filename": "src/pages/.locales/existing.json",
-					"data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
-				},
-				{
-					"action": "read",
-					"filename": "src/pages/About/.locales/existing.json",
-					"data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
-				},
-				{
-					"action": "read",
-					"filename": "src/application/.locales/existing.json",
-					"data": "{\n    \"Application\": \"アプリケーション\"\n}"
-				}
+                {
+                    "action": "read",
+                    "filename": "./locales/existing.json",
+                    "data": "{\n    // NEW\n    // \n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                },
+                {
+                    "action": "write",
+                    "filename": "./locales/existing.json",
+                    "data": "{\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/pages/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/pages/About/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/application/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                }
 			]);
         });
 
@@ -242,42 +239,42 @@ console.log(JSON.stringify(fs.actions, null, 4));
             fs.readFileSync = originalReadFileSync;
 
 			expect(fs.actions).toEqual([
-				{
-					"action": "read",
-					"filename": "./locales/existing.json",
-					"data": "{\n    // NEW\n    // \n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
-				},
-				{
-					"action": "write",
-					"filename": "./locales/existing.json",
-					"data": "{\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
-				},
-				{
-					"action": "read",
-					"filename": "src/pages/.locales/existing.json",
-					"data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
-				},
-				{
-					"action": "read",
-					"filename": "src/pages/Search/.locales/existing.json",
-					"data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
-				},
-				{
-					"action": "write",
-					"filename": "src/pages/Search/.locales/existing.json",
-					"data": "{\n    \"Application\": \"アプリケーション\"\n}"
-				},
-				{
-					"action": "read",
-					"filename": "src/pages/About/.locales/existing.json",
-					"data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
-				},
-				{
-					"action": "read",
-					"filename": "src/application/.locales/existing.json",
-					"data": "{\n    \"Application\": \"アプリケーション\"\n}"
-				}
-			]);
+                {
+                    "action": "read",
+                    "filename": "./locales/existing.json",
+                    "data": "{\n    // NEW\n    // \n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                },
+                {
+                    "action": "write",
+                    "filename": "./locales/existing.json",
+                    "data": "{\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/pages/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/pages/Search/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
+                },
+                {
+                    "action": "write",
+                    "filename": "src/pages/Search/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/pages/About/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/application/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                }
+            ]);
         });
 
         it('updates, adding file', () => {
