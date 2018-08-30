@@ -22,12 +22,12 @@ y18n.mockImplementation(() => {
                 localization[k] = localization[k] || ''
             }
         },
-        __n() {
+        __n(singular, plural) {
             const cache = this.cache || {};
             const localization = cache['template'] = cache['template'] || {};
 
-            if (!localization.hasOwnProperty(k)) {
-                localization[k] = localization[k] || {'one': '', 'other': ''}
+            if (!localization.hasOwnProperty(singular)) {
+                localization[singular] = localization[singular] || {'one': singular, 'other': plural}
             }
         }
     };

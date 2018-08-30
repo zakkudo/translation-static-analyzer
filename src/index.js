@@ -277,7 +277,6 @@ function rebuildCache() {
             const keys = Object.keys(metadata);
             const {__, __n} = this.instance;
 
-                    console.log('eval', metadata);
             Object.values(metadata).forEach((v) => {
                 try {
                     eval(v.fn);
@@ -312,7 +311,6 @@ function loadSourceFiles() {
     const {modified, removed} = this.files;
     const sourceByFilename = this.sourceByFilename;
     const keysByFilename = this.keysByFilename;
-    const removedAsSet = new Set(removed);
 
     modified.forEach((m) => {
         try {

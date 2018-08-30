@@ -20,7 +20,7 @@ export default class SearchPage extends Component {
      }
 
     static get template() {
-         return '{{__('invalid''string')}} <div>{{__n('%s result', '%s results', 2)}}</div>';
+         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';
 
     }
 };
