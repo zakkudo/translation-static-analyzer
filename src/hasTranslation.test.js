@@ -24,4 +24,31 @@ describe('hasTranslation', () => {
     it('returns false for string', () => {
         expect(hasTranslation('test text')).toBe(true);
     });
+
+    it('returns true for plural form', () => {
+        expect(hasTranslation({
+            "%d %s cat": {
+                "one": "%d %s cat",
+                "other": "%d %s cats"
+            },
+        })).toEqual(true);
+    });
+
+    it('returns false for plural form when empty strings', () => {
+        expect(hasTranslation({
+            "%d %s cat": {
+                "one": "",
+                "other": ""
+            },
+        })).toEqual(false);
+    });
+
+    it('returns true for plural form even when one empty string', () => {
+        expect(hasTranslation({
+            "%d %s cat": {
+                "one": "",
+                "other": "%d %s cats"
+            },
+        })).toEqual(true);
+    });
 });

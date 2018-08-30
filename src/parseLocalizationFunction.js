@@ -1,6 +1,9 @@
 const isQuoteCharacter = require('./isQuoteCharacter');
 const isWhiteSpaceCharacter = require('./isWhiteSpaceCharacter');
 
+/**
+ * @private
+ */
 function continueToQuoteStart(text, state) {
     const readCharacter = require('./readCharacter');
 
@@ -19,6 +22,9 @@ function continueToQuoteStart(text, state) {
     return state;
 }
 
+/**
+ * @private
+ */
 function continueUntilStackLengthIs(text, state, length) {
     const readCharacter = require('./readCharacter');
 
@@ -47,8 +53,13 @@ module.exports = function parseLocalizationFunction(text, {index, stack, lineNum
 
     index += 1;
 
+    if (text.charAt(index + 1) === 'n') {
+        index += 1;
+    }
+
     if (text.charAt(index + 1) === '(') {
         index += 1;
+
     }
 
     const keyStart = continueToQuoteStart(text, {index, stack, lineNumber});

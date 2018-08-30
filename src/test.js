@@ -36,7 +36,6 @@ describe('TranslationStaticAnalyzer', () => {
             files: 'test files',
             locales: ['existing'],
             target: 'test directory targets',
-            //templates: ''
         });
 
         const exitCallback = mocks.processOn.mock.calls[0];
@@ -299,7 +298,6 @@ describe('TranslationStaticAnalyzer', () => {
                 files: 'test files',
                 locales: ['existing'],
                 target: 'test directory targets',
-                //templates: ''
             });
 
             analyzer.update();
@@ -360,7 +358,6 @@ describe('TranslationStaticAnalyzer', () => {
                 files: 'test files',
                 locales: ['existing'],
                 target: 'test directory targets',
-                //templates: ''
             });
 
             analyzer.update();
@@ -562,7 +559,6 @@ describe('TranslationStaticAnalyzer', () => {
             files: 'test files',
             locales: ['new'],
             target: 'test directory targets',
-            //templates: ''
         });
 
         analyzer.update([]);
@@ -657,7 +653,6 @@ describe('TranslationStaticAnalyzer', () => {
         const analyzer = new TranslationStaticAnalyzer({
             files: 'test files',
             target: 'test directory targets',
-            //templates: ''
         });
 
         analyzer.update([]);
@@ -744,3 +739,4 @@ describe('TranslationStaticAnalyzer', () => {
         ]);
     });
 });
+

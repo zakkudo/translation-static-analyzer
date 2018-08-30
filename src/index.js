@@ -277,6 +277,7 @@ function rebuildCache() {
             const keys = Object.keys(metadata);
             const {__, __n} = this.instance;
 
+                    console.log('eval', metadata);
             Object.values(metadata).forEach((v) => {
                 try {
                     eval(v.fn);
@@ -307,7 +308,7 @@ function rebuildCache() {
 /**
  * @private
  */
-function parseSourceFiles() {
+function loadSourceFiles() {
     const {modified, removed} = this.files;
     const sourceByFilename = this.sourceByFilename;
     const keysByFilename = this.keysByFilename;
@@ -500,7 +501,7 @@ module.exports = class TranslationStaticAnalyzer {
 
         if (!locales.length) {
             console.warn(
-                "This library isn't particularly usefull " +
+                "This library isn't particularly useful " +
                 "if you don't request any locales to be generated."
             );
             return;
@@ -518,7 +519,7 @@ module.exports = class TranslationStaticAnalyzer {
         }
 
         if (files.modified.length) {
-            parseSourceFiles.call(this);
+            loadSourceFiles.call(this);
         }
 
         rebuildCache.call(this);

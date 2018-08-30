@@ -229,6 +229,30 @@ describe('plugins/readCharacter', () => {
         }]);
     });
 
+    it('parses basic plural translation function', () => {
+        let state = {index: 0, stack: [], lineNumber: 0}
+        const text = '__n("%d cat", "%d cats", 1)b';
+        const actual = [];
+
+        while ((state = readCharacter(text, state)) !== null) {
+            actual.push(state);
+        }
+
+        expect(actual).toEqual([{
+            index: 27,
+            stack: [],
+            lineNumber: 0,
+            localization: {
+                key: '%d cat',
+                fn: '__n("%d cat", "%d cats", 1)',
+            }
+        }, {
+            index: 28,
+            stack: [],
+            lineNumber: 0,
+        }]);
+    });
+
     describe('polymer-style template strings', () => {
         it('parses basic translation function in [[]] interpolation string', () => {
             let state = {index: 0, stack: [], lineNumber: 0}
