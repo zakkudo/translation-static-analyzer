@@ -1,4 +1,5 @@
 const JSON5 = require('json5');
+const safeEval = require('safe-eval');
 const equal = require('deep-equal');
 const fs = require('fs-extra');
 const glob = require('glob');
@@ -279,7 +280,7 @@ function rebuildCache() {
 
             Object.values(metadata).forEach((v) => {
                 try {
-                    eval(v.fn);
+                    safeEval(v.fn, {__, __n});
                 } catch(e) {
                     console.warn(e);
                 }
