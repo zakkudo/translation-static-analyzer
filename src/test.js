@@ -1,11 +1,12 @@
 const TranslationStaticAnalyzer = require('.');
 const fs = require('fs-extra');
-//const console = require('console');
+const filesystem = require('../__mocks__/filesystem');
+const console = require('console');
 
 jest.mock('path');
 jest.mock('glob');
 jest.mock('fs-extra');
-//jest.mock('console');
+jest.mock('console');
 
 const mocks = {};
 
@@ -14,7 +15,7 @@ const path = require('path');
 describe('TranslationStaticAnalyzer', () => {
     beforeEach(() => {
         mocks.processOn = jest.spyOn(process, 'on');
-        //mocks.consoleLog = jest.spyOn(console, 'log');
+        mocks.consoleLog = jest.spyOn(console, 'log');
 
 		path.resolve.mockImplementation((...parts) => {
             return `${parts.join('/')}`;
@@ -224,6 +225,73 @@ describe('TranslationStaticAnalyzer', () => {
 					"data": "{\n    \"Application\": \"アプリケーション\"\n}"
 				}
 			]);
+        });
+
+        it('removes unreadable source file', () => {
+            const analyzer = new TranslationStaticAnalyzer({
+                files: 'test files',
+                locales: ['existing'],
+                target: 'test directory targets',
+            });
+
+            analyzer.update();
+
+            fs.actions.length = 0;
+            const originalReadFileSync = fs.readFileSync;
+
+            fs.readFileSync = (filename) => {
+                if (filename === 'src/pages/Search/index.js') {
+                    const e = new Error("MockError: readFileSync issue");
+
+                    e.code = 'EEXIST';
+
+                    throw e;
+                }
+
+                return originalReadFileSync(filename);
+            };
+
+            analyzer.update(['src/pages/Search/index.js']);
+
+            fs.readFileSync = originalReadFileSync;
+
+			expect(fs.actions).toEqual([
+                {
+                    "action": "read",
+                    "filename": "./locales/existing.json",
+                    "data": "{\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                },
+                {
+                    "action": "write",
+                    "filename": "./locales/existing.json",
+                    "data": "{\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/pages/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/pages/Search/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
+                },
+                {
+                    "action": "write",
+                    "filename": "src/pages/Search/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/pages/About/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/application/.locales/existing.json",
+                    "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                }
+            ]);
         });
 
         it('updates, adding file', () => {
@@ -594,7 +662,6 @@ describe('TranslationStaticAnalyzer', () => {
 
         analyzer.update([]);
 
-        console.log(JSON.stringify(fs.actions, null, 4));
         expect(fs.actions).toEqual([]);
     });
 
@@ -608,7 +675,6 @@ describe('TranslationStaticAnalyzer', () => {
 
         analyzer.update();
 
-        console.log(JSON.stringify(fs.actions, null, 4));
         expect(fs.actions).toEqual([
             {
                 "action": "read",

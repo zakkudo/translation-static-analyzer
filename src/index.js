@@ -206,16 +206,14 @@ function updateLocalization(localization) {
                     data: template[k]
                 }
             });
-        } else if (templateHasProperty && localizationHasTranslation) {
-            return Object.assign({}, accumulator, {
-                [k]: {
-                    files,
-                    data: localization[k]
-                }
-            });
         }
-
-        return accumulator;
+        // TODO ?? is this a problem?
+        return Object.assign({}, accumulator, {
+            [k]: {
+                files,
+                data: localization[k]
+            }
+        });
     }, {});
 }
 
@@ -272,30 +270,33 @@ function rebuildCache() {
 
     this.files.all.forEach((m) => {
         const contents = sourceByFilename.get(m);
-        const metadata = readString(contents);
-        const keysByFilename = this.keysByFilename;
-        const keys = Object.keys(metadata);
-        const {__, __n} = this.instance;
 
-        Object.values(metadata).forEach((v) => {
-            try {
-                eval(v.fn);
-            } catch(e) {
-                console.warn(e);
-            }
-        });
+        if (contents && typeof contents === 'string') {
+            const metadata = readString(contents);
+            const keysByFilename = this.keysByFilename;
+            const keys = Object.keys(metadata);
+            const {__, __n} = this.instance;
 
-        keys.forEach((k) => {
-            const {lineNumber} = metadata[k];
+            Object.values(metadata).forEach((v) => {
+                try {
+                    eval(v.fn);
+                } catch(e) {
+                    console.warn(e);
+                }
+            });
 
-            if (!filenamesByKey.has(k)) {
-                filenamesByKey.set(k, new Set());
-            }
+            keys.forEach((k) => {
+                const {lineNumber} = metadata[k];
 
-            filenamesByKey.get(k).add(`${m}:${lineNumber}`);
-        });
+                if (!filenamesByKey.has(k)) {
+                    filenamesByKey.set(k, new Set());
+                }
 
-        keysByFilename.set(m, new Set(keys));
+                filenamesByKey.get(k).add(`${m}:${lineNumber}`);
+            });
+
+            keysByFilename.set(m, new Set(keys));
+        }
     });
 
     if (options.debug) {
@@ -307,15 +308,19 @@ function rebuildCache() {
  * @private
  */
 function parseSourceFiles() {
-    const files = this.files.modified;
+    const {modified, removed} = this.files;
     const sourceByFilename = this.sourceByFilename;
+    const keysByFilename = this.keysByFilename;
+    const removedAsSet = new Set(removed);
 
-    files.forEach((m) => {
+    modified.forEach((m) => {
         try {
             const contents = String(fs.readFileSync(m));
             sourceByFilename.set(m, contents);
         } catch (e) {
             sourceByFilename.delete(m);
+            keysByFilename.delete(m);
+            removed.push(m);
         }
     });
 }
@@ -349,7 +354,7 @@ function writeToTargets() {
             }
 
             filenames.forEach((f) => {
-                const keys = keysByFilename.get(f);
+                const keys = keysByFilename.get(f) || [];
 
                 keys.forEach((k) => {
                     if (localization.hasOwnProperty(k) && hasTranslation(localization[k])) {
@@ -363,7 +368,6 @@ function writeToTargets() {
             if (!equal(subLocalization, previousSubLocalization)) {
                 fs.writeFileSync(filename, JSON.stringify(subLocalization, null, 4));
             }
-
         });
     });
 }
