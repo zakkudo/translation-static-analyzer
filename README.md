@@ -3,8 +3,19 @@
 ## TranslationStaticAnalyzer
 A library for scanning javscript files to build translation mappings in json automatically.
 
-[![Build Status](https://travis-ci.org/zakkudo/translation-static-analyzer.svg?branch=master)](https://travis-ci.org/zakkudo/translation-static-analyzer)
-[![Coverage Status](https://coveralls.io/repos/github/zakkudo/translation-static-analyzer/badge.svg?branch=master)](https://coveralls.io/github/zakkudo/translation-static-analyzer?branch=master)
+<p>
+<a href="https://travis-ci.org/zakkudo/translation-static-analyzer">
+    <img src="https://travis-ci.org/zakkudo/translation-static-analyzer.svg?branch=master"
+         alt="Build Status" /></a>
+<a href="https://coveralls.io/github/zakkudo/translation-static-analyzer?branch=master">
+    <img src="https://coveralls.io/repos/github/zakkudo/translation-static-analyzer/badge.svg?branch=master"
+         alt="Coverage Status" /></a>
+<a href="https://snyk.io/test/github/zakkudo/translation-static-analyzer">
+    <img src="https://snyk.io/test/github/zakkudo/translation-static-analyzer/badge.svg"
+         alt="Known Vulnerabilities"
+         data-canonical-src="https://snyk.io/test/github/zakkudo/translation-static-analyzer"
+         style="max-width:100%;" /></a>
+</p>
 
 Why use this?
 
@@ -89,11 +100,12 @@ const translated = translator.__n('There is a duck in the pond.', 'There are %d 
 
 #### new module.exports(options)
 
-| Param | Type | Description |
-| --- | --- | --- |
-| options | <code>Object</code> | The modifiers for how the analyzer is run |
-| options.files | <code>String</code> | A glob of the files to pull translations from |
-| options.debug | <code>Boolean</code> | Show debugging information in the console |
-| options.locales | <code>Array.&lt;String&gt;</code> | The locales to generate (eg fr, ja_JP, en) |
-| options.target | <code>String</code> | Where to write the final translations, which can be split between                                  multiple directories for modularity |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| options | <code>Object</code> |  | The modifiers for how the analyzer is run |
+| options.files | <code>String</code> |  | A glob of the files to pull translations from |
+| [options.debug] | <code>Boolean</code> | <code>false</code> | Show debugging information in the console |
+| [options.locales] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | The locales to generate (eg fr, ja_JP, en) |
+| options.templates | <code>String</code> |  | The location to store the translator translatable templates for each language |
+| options.target | <code>String</code> |  | Where to write the final translations, which can be split between multiple directories for modularity. |
 

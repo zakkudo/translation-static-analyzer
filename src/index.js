@@ -73,7 +73,8 @@ function calculateTargetFiles(targetDirectories, all) {
 /**
  * @private
  */
-function calculateFiles(modifiedFiles, options) {
+function calculateFiles(modifiedFiles) {
+    const options = this.options;
     const {files, target} = options;
     const all = glob.sync(files).map((a) => path.resolve(a));
     const hasModifiedFiles = Boolean(modifiedFiles.length);
@@ -83,13 +84,10 @@ function calculateFiles(modifiedFiles, options) {
     const targetDirectories = glob.sync(target).filter((t) => fs.statSync(t).isDirectory());
     const filesByTargetDirectory = calculateTargetFiles(targetDirectories, all);
 
-    print('requested files:', JSON.stringify(modifiedFiles, null, 4));
-    print('files:', JSON.stringify({all, modified, removed}, null, 4));
-
     return {
         all,
-        modified,
-        removed,
+        modified: new Set([...this.files.modified, ...modified]),
+        removed: new Set([...this.files.removed, ...removed]),
         target: {
             targetDirectories,
             filesByTargetDirectory,
@@ -242,7 +240,7 @@ function generateLocaleFiles() {
 
         localizationByLanguage.set(l, nextLocalization);
 
-        if (!equal(localization, nextLocalization) || files.removed.length) {
+        if (!equal(localization, nextLocalization) || files.removed.size) {
             writeLocalizationWithMetadata.call(this, l, nextLocalizationWithMetadata);
             changed = true;
         }
@@ -322,7 +320,7 @@ function loadSourceFiles() {
         } catch (e) {
             sourceByFilename.delete(m);
             keysByFilename.delete(m);
-            removed.push(m);
+            removed.add(m);
         }
     });
 }
@@ -377,11 +375,19 @@ function writeToTargets() {
 /**
  * A library for scanning javscript files to build translation mappings in json automatically.
  *
- * [![Build Status](https://travis-ci.org/zakkudo/translation-static-analyzer.svg?branch=master)](https://travis-ci.org/zakkudo/translation-static-analyzer)
- * [![Coverage Status](https://coveralls.io/repos/github/zakkudo/translation-static-analyzer/badge.svg?branch=master)](https://coveralls.io/github/zakkudo/translation-static-analyzer?branch=master)
- * <a href="https://badge.fury.io/js/%40zakkudo%2Ftranslation-static-analyzer">
- *     <img src="https://badge.fury.io/js/%40zakkudo%2Ftranslation-static-analyzer.svg" alt="npm version" height="18">
- * </a>
+ * <p>
+ * <a href="https://travis-ci.org/zakkudo/translation-static-analyzer">
+ *     <img src="https://travis-ci.org/zakkudo/translation-static-analyzer.svg?branch=master"
+ *          alt="Build Status" /></a>
+ * <a href="https://coveralls.io/github/zakkudo/translation-static-analyzer?branch=master">
+ *     <img src="https://coveralls.io/repos/github/zakkudo/translation-static-analyzer/badge.svg?branch=master"
+ *          alt="Coverage Status" /></a>
+ * <a href="https://snyk.io/test/github/zakkudo/translation-static-analyzer">
+ *     <img src="https://snyk.io/test/github/zakkudo/translation-static-analyzer/badge.svg"
+ *          alt="Known Vulnerabilities"
+ *          data-canonical-src="https://snyk.io/test/github/zakkudo/translation-static-analyzer"
+ *          style="max-width:100%;" /></a>
+ * </p>
  *
  * Why use this?
  *
@@ -458,8 +464,8 @@ module.exports = class TranslationStaticAnalyzer {
     /**
      * @param {Object} options - The modifiers for how the analyzer is run
      * @param {String} options.files - A glob of the files to pull translations from
-     * @param {[Boolean = false]} options.debug - Show debugging information in the console
-     * @param {[Array<String> = []]} options.locales - The locales to generate (eg fr, ja_JP, en)
+     * @param {Boolean} [options.debug = false] - Show debugging information in the console
+     * @param {Array<String>} [options.locales = []] - The locales to generate (eg fr, ja_JP, en)
      * @param {String} options.templates - The location to store the translator translatable templates for each language
      * @param {String} options.target - Where to write the final translations, which can be split between
      * multiple directories for modularity.
@@ -475,6 +481,10 @@ module.exports = class TranslationStaticAnalyzer {
         this.keysByFilename = new Map();
         this.filenamesByKey = new Map();
         this.localizationByLanguage = new Map();
+        this.files = {
+            modified: new Set(),
+            removed: new Set(),
+        };
 
         if (this.options.debug) {
             print('Creating locale gen directory', localeGen.directory);
@@ -491,14 +501,15 @@ module.exports = class TranslationStaticAnalyzer {
     }
 
     /**
-     * Updates the translations to match the source files.
-     * @param {[Array<String> = []}} modifiedFiles - The files or none to
-     * update everything in the options.files glob pattern.
+     * Read changes from the source files and update the language templates.
      */
-    update(modifiedFiles = []) {
+    read(modifiedFiles = []) {
         const options = this.options;
         const locales = options.locales || [];
-        const files = this.files = calculateFiles(modifiedFiles.map((m) => path.resolve(m)), options)
+        const files = this.files = calculateFiles.call(
+            this,
+            modifiedFiles.map((m) => path.resolve(m))
+        )
 
         if (!locales.length) {
             console.warn(
@@ -512,23 +523,45 @@ module.exports = class TranslationStaticAnalyzer {
             print('Updating localization keys for', JSON.stringify(files.modified, null, 4));
         }
 
-        if (files.removed.length) {
+        if (files.removed.size) {
             files.removed.forEach((f) => {
                 this.sourceByFilename.delete(f);
                 this.keysByFilename.delete(f);
             });
         }
 
-        if (files.modified.length) {
+        if (files.modified.size) {
             loadSourceFiles.call(this);
         }
 
         rebuildCache.call(this);
 
-        if (files.modified.length || files.removed.length) {
-            if (generateLocaleFiles.call(this)) {
-                writeToTargets.call(this);
-            }
+        return Boolean(files.modified.size || files.removed.size);
+    }
+
+    /**
+     * Write to the targets. Use to force an update of the targets if a
+     * language file template it updated without updating a source file.
+     */
+    write() {
+        if (generateLocaleFiles.call(this)) {
+            writeToTargets.call(this);
+        }
+
+        this.files.modified = new Set();
+        this.files.removed = new Set();
+    }
+
+    /**
+     * Updates the translations to match the source files.
+     * @param {Array<String>} [modifiedFiles = []] - The files or none to
+     * update everything in the options.files glob pattern.
+     */
+    update(modifiedFiles = []) {
+        const options = this.options;
+
+        if (this.read(modifiedFiles)) {
+            this.write();
         }
 
         if (options.debug) {
