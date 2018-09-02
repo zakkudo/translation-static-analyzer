@@ -1,6 +1,5 @@
 const TranslationStaticAnalyzer = require('.');
 const fs = require('fs-extra');
-const filesystem = require('../__mocks__/filesystem');
 const console = require('console');
 
 jest.mock('path');
@@ -162,6 +161,127 @@ describe('TranslationStaticAnalyzer', () => {
 				"data": "{\n    // NEW\n    // \n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
 			}
 		]);
+    });
+
+    describe('read', () => {
+        it('reads all files', () => {
+            const analyzer = new TranslationStaticAnalyzer({
+                files: 'test files',
+                locales: ['existing'],
+                target: 'test directory targets',
+            });
+
+            expect(analyzer.read()).toBe(true);
+            expect(fs.actions).toEqual(
+                [
+                    {
+                        "action": "read",
+                        "filename": "src/pages/Search/index.js",
+                        "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';\n\n    }\n};"
+                    },
+                    {
+                        "action": "read",
+                        "filename": "src/pages/About/index.js",
+                        "data": "export default class AboutPage extends Component {\n     static get title() {\n         return __('About');\n     }\n\n    static get template() {\n         return <div>{{__('Search')}} Welcome to the about page!</div>';\n\n    }\n};"
+                    },
+                    {
+                        "action": "read",
+                        "filename": "src/index.js",
+                        "data": "export default class Application extends Component {\n     static get title() {\n         return __('Application');\n     }\n};"
+                    },
+                    {
+                        "action": "read",
+                        "filename": "src/test.js",
+                        "data": null
+                    }
+                ]
+            );
+        });
+
+        it('reads one file', () => {
+            const analyzer = new TranslationStaticAnalyzer({
+                files: 'test files',
+                locales: ['existing'],
+                target: 'test directory targets',
+            });
+
+            fs.actions.length = 0;
+
+            expect(analyzer.read(['src/pages/Search/index.js'])).toBe(true);
+            expect(fs.actions).toEqual(
+                [
+                    {
+                        "action": "read",
+                        "filename": "src/pages/Search/index.js",
+                        "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';\n\n    }\n};"
+                    },
+                ]
+            );
+        });
+    });
+
+    describe('write', () => {
+        it('writes when existing files and no changes', () => {
+            const analyzer = new TranslationStaticAnalyzer({
+                files: 'test files',
+                locales: ['existing'],
+                target: 'test directory targets',
+            });
+
+            fs.actions.length = 0;
+            analyzer.write();
+
+            expect(fs.actions).toEqual(
+                [
+                    {
+                        "action": "read",
+                        "filename": "./locales/existing.json",
+                        "data": "{\"Search\":\"検索\",\"test unused key\":\"test value\",\"Application\":\"アプリケーション\"}"
+                    },
+                    {
+                        "action": "write",
+                        "filename": "./locales/existing.json",
+                        "data": "{\n    // NEW\n    \"%s result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    \"About\": \"\",\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                    },
+                    {
+                        "action": "read",
+                        "filename": "src/pages/.locales/existing.json",
+                        "data": null
+                    },
+                    {
+                        "action": "write",
+                        "filename": "src/pages/.locales/existing.json",
+                        "data": "{}"
+                    },
+                    {
+                        "action": "read",
+                        "filename": "src/pages/Search/.locales/existing.json",
+                        "data": "{\"Search\":\"\"}"
+                    },
+                    {
+                        "action": "write",
+                        "filename": "src/pages/Search/.locales/existing.json",
+                        "data": "{}"
+                    },
+                    {
+                        "action": "read",
+                        "filename": "src/pages/About/.locales/existing.json",
+                        "data": "{}"
+                    },
+                    {
+                        "action": "read",
+                        "filename": "src/application/.locales/existing.json",
+                        "data": null
+                    },
+                    {
+                        "action": "write",
+                        "filename": "src/application/.locales/existing.json",
+                        "data": "{}"
+                    }
+                ]
+            );
+            console.log(JSON.stringify(fs.actions, null, 4));
+        });
     });
 
     describe('update', () => {

@@ -395,7 +395,8 @@ function writeToTargets() {
  * - Templates are automatically generated for the translators
  * - The translations are noted if they are new, unused and what files
  * - It allows splitting the translations easily for dynamic imports to allow sliced loading
- * - Any string wrapped in `__()` or `__n()`, will be picked up as a translatable making usage extremely easy for developers
+ * - Any string wrapped in `__()` or `__n()`, will be picked up as a
+ *   translatable making usage extremely easy for developers
  *
  * What does it do?
  *
@@ -498,6 +499,10 @@ module.exports = class TranslationStaticAnalyzer {
             directory: localeGen.directory,
             locale: localeGen.name,
         });
+
+        this.files = calculateFiles.call(this, []);
+        this.files.modified = new Set();
+        this.files.removed = new Set();
     }
 
     /**
