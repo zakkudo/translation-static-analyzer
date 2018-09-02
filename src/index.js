@@ -73,14 +73,14 @@ function calculateTargetFiles(targetDirectories, all) {
 /**
  * @private
  */
-function calculateFiles(modifiedFiles) {
+function calculateFiles(requestFiles) {
     const options = this.options;
     const {files, target} = options;
     const all = glob.sync(files).map((a) => path.resolve(a));
-    const hasModifiedFiles = Boolean(modifiedFiles.length);
+    const hasModifiedFiles = Boolean(requestFiles.length);
     const allAsSet = new Set(all);
-    const modified = hasModifiedFiles ? modifiedFiles.filter((f) => allAsSet.has(f)) : all;
-    const removed = modifiedFiles.filter((f) => !allAsSet.has(f));
+    const modified = hasModifiedFiles ? requestFiles.filter((f) => allAsSet.has(f)) : all;
+    const removed = requestFiles.filter((f) => !allAsSet.has(f));
     const targetDirectories = glob.sync(target).filter((t) => fs.statSync(t).isDirectory());
     const filesByTargetDirectory = calculateTargetFiles(targetDirectories, all);
 
@@ -101,7 +101,7 @@ function calculateFiles(modifiedFiles) {
 function serializeLocalizationWithMetaData(localizationWithMetadata) {
     const keys = Object.keys(localizationWithMetadata);
     const length = keys.length;
-    const templateDirectory = path.resolve(getTemplateDirectory.call(this), '..');
+    const templateDirectory = path.resolve(this.templateDirectory, '..');
 
     return keys.reduce((serialized, k, i) => {
         const hasMore = i < length - 1;
@@ -115,19 +115,6 @@ function serializeLocalizationWithMetaData(localizationWithMetadata) {
 
         return `${serialized}${formattedNote}${formattedFiles}${indent}"${k}": ${JSON.stringify(localizationWithMetadata[k].data)}${hasMore ? ',' : ''}\n`;
     }, '{\n') + '}';
-}
-
-/**
- * @private
- */
-function getTemplateDirectory() {
-    const options = this.options;
-
-    if (options.templates) {
-        return path.resolve(options.templates, 'locales');
-    }
-
-    return './locales';
 }
 
 /**
@@ -151,7 +138,7 @@ function readJSON5FileWithFallback(filename, fallback = null) {
  * @private
  */
 function readLocalization(locale) {
-    const directory = getTemplateDirectory.call(this);
+    const directory = this.templateDirectory;
     const filename = `${directory}/${locale}.json`;
 
     return readJSON5FileWithFallback.call(this, filename);
@@ -161,7 +148,7 @@ function readLocalization(locale) {
  * @private
  */
 function writeLocalizationWithMetadata(locale, localization) {
-    const directory = getTemplateDirectory.call(this);
+    const directory = this.templateDirectory;
     const filename = `${directory}/${locale}.json`;
     const serialized = serializeLocalizationWithMetaData.call(this, localization);
     const options = this.options;
@@ -228,7 +215,7 @@ function generateLocaleFiles() {
     const localizationByLanguage = this.localizationByLanguage = new Map();
     let changed = false;
 
-    fs.ensureDirSync(getTemplateDirectory.call(this));
+    fs.ensureDirSync(this.templateDirectory);
 
     locales.forEach((l) => {
         const localization = readLocalization.call(this, l) || {};
@@ -461,14 +448,20 @@ function writeToTargets() {
  *
  * @module TranslationStaticAnalyzer
  */
-module.exports = class TranslationStaticAnalyzer {
+module.exports = TranslationStaticAnalyzer;
+
+/**
+ * Class description.
+ */
+class TranslationStaticAnalyzer {
     /**
      * @param {Object} options - The modifiers for how the analyzer is run
      * @param {String} options.files - A glob of the files to pull translations from
      * @param {Boolean} [options.debug = false] - Show debugging information in the console
      * @param {Array<String>} [options.locales = []] - The locales to generate (eg fr, ja_JP, en)
-     * @param {String} options.templates - The location to store the translator translatable templates for each language
-     * @param {String} options.target - Where to write the final translations, which can be split between
+     * @param {String} [options.templates = 'locales'] - The location to store
+     * the translator translatable templates for each language
+     * @param {String} [options.target] - Where to write the final translations, which can be split between
      * multiple directories for modularity.
      */
     constructor(options) {
@@ -507,13 +500,17 @@ module.exports = class TranslationStaticAnalyzer {
 
     /**
      * Read changes from the source files and update the language templates.
+     * @param {Array<String>} [requestFiles = []] - The files or none to
+     * update everything in the options.files glob pattern.
+     * @return {Boolean} True if some some of the modified files matches the
+     * file option passed on initialization
      */
-    read(modifiedFiles = []) {
+    read(requestFiles = []) {
         const options = this.options;
         const locales = options.locales || [];
         const files = this.files = calculateFiles.call(
             this,
-            modifiedFiles.map((m) => path.resolve(m))
+            requestFiles.map((m) => path.resolve(m))
         )
 
         if (!locales.length) {
@@ -546,7 +543,8 @@ module.exports = class TranslationStaticAnalyzer {
 
     /**
      * Write to the targets. Use to force an update of the targets if a
-     * language file template it updated without updating a source file.
+     * language file template in the templateDirectory is updated without
+     * updating a source file.
      */
     write() {
         if (generateLocaleFiles.call(this)) {
@@ -559,19 +557,35 @@ module.exports = class TranslationStaticAnalyzer {
 
     /**
      * Updates the translations to match the source files.
-     * @param {Array<String>} [modifiedFiles = []] - The files or none to
+     * @param {Array<String>} [requestFiles = []] - The files or none to
      * update everything in the options.files glob pattern.
      */
-    update(modifiedFiles = []) {
+    update(requestFiles = []) {
         const options = this.options;
 
-        if (this.read(modifiedFiles)) {
+        if (this.read(requestFiles)) {
             this.write();
         }
 
         if (options.debug) {
             print('DONE');
         }
+    }
+
+    /**
+     * @return {String} The path to the directory which holds
+     * the translation templates that are dynamically updated
+     * by code changes and should be used by translators
+     * to add the localizations.
+     */
+    get templateDirectory() {
+        const options = this.options;
+
+        if (options.templates) {
+            return path.resolve(options.templates, 'locales');
+        }
+
+        return './locales';
     }
 }
 

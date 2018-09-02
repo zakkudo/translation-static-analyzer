@@ -90,16 +90,30 @@ const translated = translator.__n('There is a duck in the pond.', 'There are %d 
 ```
 
 * [TranslationStaticAnalyzer](#module_TranslationStaticAnalyzer)
-    * [module.exports](#exp_module_TranslationStaticAnalyzer--module.exports) ⏏
-        * [new module.exports(options)](#new_module_TranslationStaticAnalyzer--module.exports_new)
+    * [~TranslationStaticAnalyzer](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)
+        * [new TranslationStaticAnalyzer(options)](#new_module_TranslationStaticAnalyzer..TranslationStaticAnalyzer_new)
+        * [.templateDirectory](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+templateDirectory) ⇒ <code>String</code>
+        * [.read([requestFiles])](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+read) ⇒ <code>Boolean</code>
+        * [.write()](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+write)
+        * [.update([requestFiles])](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+update)
 
-<a name="exp_module_TranslationStaticAnalyzer--module.exports"></a>
+<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer"></a>
 
-### module.exports ⏏
-**Kind**: Exported class  
-<a name="new_module_TranslationStaticAnalyzer--module.exports_new"></a>
+### TranslationStaticAnalyzer~TranslationStaticAnalyzer
+Class description.
 
-#### new module.exports(options)
+**Kind**: inner class of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer)  
+
+* [~TranslationStaticAnalyzer](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)
+    * [new TranslationStaticAnalyzer(options)](#new_module_TranslationStaticAnalyzer..TranslationStaticAnalyzer_new)
+    * [.templateDirectory](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+templateDirectory) ⇒ <code>String</code>
+    * [.read([requestFiles])](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+read) ⇒ <code>Boolean</code>
+    * [.write()](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+write)
+    * [.update([requestFiles])](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+update)
+
+<a name="new_module_TranslationStaticAnalyzer..TranslationStaticAnalyzer_new"></a>
+
+#### new TranslationStaticAnalyzer(options)
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -107,6 +121,46 @@ const translated = translator.__n('There is a duck in the pond.', 'There are %d 
 | options.files | <code>String</code> |  | A glob of the files to pull translations from |
 | [options.debug] | <code>Boolean</code> | <code>false</code> | Show debugging information in the console |
 | [options.locales] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | The locales to generate (eg fr, ja_JP, en) |
-| options.templates | <code>String</code> |  | The location to store the translator translatable templates for each language |
-| options.target | <code>String</code> |  | Where to write the final translations, which can be split between multiple directories for modularity. |
+| [options.templates] | <code>String</code> | <code>&#x27;locales&#x27;</code> | The location to store the translator translatable templates for each language |
+| [options.target] | <code>String</code> |  | Where to write the final translations, which can be split between multiple directories for modularity. |
+
+<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+templateDirectory"></a>
+
+#### translationStaticAnalyzer.templateDirectory ⇒ <code>String</code>
+**Kind**: instance property of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)  
+**Returns**: <code>String</code> - The path to the directory which holds
+the translation templates that are dynamically updated
+by code changes and should be used by translators
+to add the localizations.  
+<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+read"></a>
+
+#### translationStaticAnalyzer.read([requestFiles]) ⇒ <code>Boolean</code>
+Read changes from the source files and update the language templates.
+
+**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)  
+**Returns**: <code>Boolean</code> - True if some some of the modified files matches the
+file option passed on initialization  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [requestFiles] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | The files or none to update everything in the options.files glob pattern. |
+
+<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+write"></a>
+
+#### translationStaticAnalyzer.write()
+Write to the targets. Use to force an update of the targets if a
+language file template in the templateDirectory is updated without
+updating a source file.
+
+**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)  
+<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+update"></a>
+
+#### translationStaticAnalyzer.update([requestFiles])
+Updates the translations to match the source files.
+
+**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [requestFiles] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | The files or none to update everything in the options.files glob pattern. |
 
