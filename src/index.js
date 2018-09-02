@@ -299,15 +299,16 @@ function updateLocalization(localization) {
  * @private
  */
 function generateLocaleFiles() {
-    const files = this.files;
     const options = this.options;
     const locales = options.locales;
+    const previousLocalizationByLanguage = this.localizationByLanguage;
     const localizationByLanguage = this.localizationByLanguage = new Map();
     let changed = false;
 
     fs.ensureDirSync(this.templateDirectory);
 
     locales.forEach((l) => {
+        const previousLocalization = previousLocalizationByLanguage.get(l);
         const localization = readLocalization.call(this, l) || {};
         const nextLocalizationWithMetadata = updateLocalization.call(this, localization);
         const pairs = Object.entries(nextLocalizationWithMetadata);
@@ -317,7 +318,10 @@ function generateLocaleFiles() {
 
         localizationByLanguage.set(l, nextLocalization);
 
-        if (!equal(localization, nextLocalization) || files.removed.size) {
+        const sourceCodeChangeUpdatedLocalization = !equal(localization, nextLocalization);
+        const translationChangeUpdatedLocalization = !equal(localization, previousLocalization);
+
+        if (sourceCodeChangeUpdatedLocalization || translationChangeUpdatedLocalization) {
             writeLocalizationWithMetadata.call(this, l, nextLocalizationWithMetadata);
             changed = true;
         }
@@ -521,7 +525,7 @@ class TranslationStaticAnalyzer {
         }
 
         if (options.debug) {
-            print('Updating localization keys for', JSON.stringify(files.modified, null, 4));
+            print('Updating localization keys for', files.modified);
         }
 
         if (files.removed.size) {
@@ -546,7 +550,9 @@ class TranslationStaticAnalyzer {
      * updating a source file.
      */
     write() {
+            console.log('BREAK1 write');
         if (generateLocaleFiles.call(this)) {
+            console.log('BREAK2 write');
             writeToTargets.call(this);
         }
 
