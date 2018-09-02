@@ -1,3 +1,54 @@
+## Modules
+
+<dl>
+<dt><a href="#module_TranslationStaticAnalyzer">TranslationStaticAnalyzer</a></dt>
+<dd><p>A library for scanning javscript files to build translation mappings in json automatically.</p>
+<p>
+<a href="https://travis-ci.org/zakkudo/translation-static-analyzer">
+    <img src="https://travis-ci.org/zakkudo/translation-static-analyzer.svg?branch=master"
+         alt="Build Status" /></a>
+<a href="https://coveralls.io/github/zakkudo/translation-static-analyzer?branch=master">
+    <img src="https://coveralls.io/repos/github/zakkudo/translation-static-analyzer/badge.svg?branch=master"
+         alt="Coverage Status" /></a>
+<a href="https://snyk.io/test/github/zakkudo/translation-static-analyzer">
+    <img src="https://snyk.io/test/github/zakkudo/translation-static-analyzer/badge.svg"
+         alt="Known Vulnerabilities"
+         data-canonical-src="https://snyk.io/test/github/zakkudo/translation-static-analyzer"
+         style="max-width:100%;" /></a>
+</p>
+
+<p>Why use this?</p>
+<ul>
+<li>You no longer have to manage hierarchies of translations</li>
+<li>Templates are automatically generated for the translators</li>
+<li>The translations are noted if they are new, unused and what files</li>
+<li>It allows splitting the translations easily for dynamic imports to allow sliced loading</li>
+<li>Any string wrapped in <code>__()</code> or <code>__n()</code>, will be picked up as a
+translatable making usage extremely easy for developers</li>
+</ul>
+<p>What does it do?</p>
+<ul>
+<li>I generates a locales directory filled with templates where the program was run, used by humans to translate</li>
+<li>It generates .locale directories optimized for loading in each of the directories passed to targets</li>
+<li>You load those translations from .locales as you need them</li>
+</ul>
+<p>Install with:</p>
+<pre><code class="lang-console">yarn add @zakkudo/translation-static-analyzer
+</code></pre>
+<p>Also consider <code>@zakkudo/translate-webpack-plugin</code> which is a wrapper for this library
+for webpack and <code>@zakkudo/translator</code> for a library that can read the localization with
+no fuss and apply the translations.</p>
+</dd>
+</dl>
+
+## Classes
+
+<dl>
+<dt><a href="#TranslationStaticAnalyzer">TranslationStaticAnalyzer</a></dt>
+<dd><p>Class description.</p>
+</dd>
+</dl>
+
 <a name="module_TranslationStaticAnalyzer"></a>
 
 ## TranslationStaticAnalyzer
@@ -88,32 +139,23 @@ translator.setLocale('ja'); //Tell the translator to use it
 const translated = translator.__('I love fish'); //Translate!
 const translated = translator.__n('There is a duck in the pond.', 'There are %d ducks in the pond', 3); //Translate!
 ```
+<a name="TranslationStaticAnalyzer"></a>
 
-* [TranslationStaticAnalyzer](#module_TranslationStaticAnalyzer)
-    * [~TranslationStaticAnalyzer](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)
-        * [new TranslationStaticAnalyzer(options)](#new_module_TranslationStaticAnalyzer..TranslationStaticAnalyzer_new)
-        * [.templateDirectory](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+templateDirectory) ⇒ <code>String</code>
-        * [.read([requestFiles])](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+read) ⇒ <code>Boolean</code>
-        * [.write()](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+write)
-        * [.update([requestFiles])](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+update)
-
-<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer"></a>
-
-### TranslationStaticAnalyzer~TranslationStaticAnalyzer
+## TranslationStaticAnalyzer
 Class description.
 
-**Kind**: inner class of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer)  
+**Kind**: global class  
 
-* [~TranslationStaticAnalyzer](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)
-    * [new TranslationStaticAnalyzer(options)](#new_module_TranslationStaticAnalyzer..TranslationStaticAnalyzer_new)
-    * [.templateDirectory](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+templateDirectory) ⇒ <code>String</code>
-    * [.read([requestFiles])](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+read) ⇒ <code>Boolean</code>
-    * [.write()](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+write)
-    * [.update([requestFiles])](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+update)
+* [TranslationStaticAnalyzer](#TranslationStaticAnalyzer)
+    * [new TranslationStaticAnalyzer(options)](#new_TranslationStaticAnalyzer_new)
+    * [.templateDirectory](#TranslationStaticAnalyzer+templateDirectory) ⇒ <code>String</code>
+    * [.read([requestFiles])](#TranslationStaticAnalyzer+read) ⇒ <code>Boolean</code>
+    * [.write()](#TranslationStaticAnalyzer+write)
+    * [.update([requestFiles])](#TranslationStaticAnalyzer+update)
 
-<a name="new_module_TranslationStaticAnalyzer..TranslationStaticAnalyzer_new"></a>
+<a name="new_TranslationStaticAnalyzer_new"></a>
 
-#### new TranslationStaticAnalyzer(options)
+### new TranslationStaticAnalyzer(options)
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -124,20 +166,20 @@ Class description.
 | [options.templates] | <code>String</code> | <code>&#x27;locales&#x27;</code> | The location to store the translator translatable templates for each language |
 | [options.target] | <code>String</code> |  | Where to write the final translations, which can be split between multiple directories for modularity. |
 
-<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+templateDirectory"></a>
+<a name="TranslationStaticAnalyzer+templateDirectory"></a>
 
-#### translationStaticAnalyzer.templateDirectory ⇒ <code>String</code>
-**Kind**: instance property of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)  
+### translationStaticAnalyzer.templateDirectory ⇒ <code>String</code>
+**Kind**: instance property of [<code>TranslationStaticAnalyzer</code>](#TranslationStaticAnalyzer)  
 **Returns**: <code>String</code> - The path to the directory which holds
 the translation templates that are dynamically updated
 by code changes and should be used by translators
 to add the localizations.  
-<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+read"></a>
+<a name="TranslationStaticAnalyzer+read"></a>
 
-#### translationStaticAnalyzer.read([requestFiles]) ⇒ <code>Boolean</code>
+### translationStaticAnalyzer.read([requestFiles]) ⇒ <code>Boolean</code>
 Read changes from the source files and update the language templates.
 
-**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)  
+**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#TranslationStaticAnalyzer)  
 **Returns**: <code>Boolean</code> - True if some some of the modified files matches the
 file option passed on initialization  
 
@@ -145,20 +187,20 @@ file option passed on initialization
 | --- | --- | --- | --- |
 | [requestFiles] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | The files or none to update everything in the options.files glob pattern. |
 
-<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+write"></a>
+<a name="TranslationStaticAnalyzer+write"></a>
 
-#### translationStaticAnalyzer.write()
+### translationStaticAnalyzer.write()
 Write to the targets. Use to force an update of the targets if a
 language file template in the templateDirectory is updated without
 updating a source file.
 
-**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)  
-<a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+update"></a>
+**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#TranslationStaticAnalyzer)  
+<a name="TranslationStaticAnalyzer+update"></a>
 
-#### translationStaticAnalyzer.update([requestFiles])
+### translationStaticAnalyzer.update([requestFiles])
 Updates the translations to match the source files.
 
-**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#module_TranslationStaticAnalyzer..TranslationStaticAnalyzer)  
+**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#TranslationStaticAnalyzer)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |

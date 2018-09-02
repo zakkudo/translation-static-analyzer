@@ -4,3 +4,4 @@ yarn-error.log
 documentation
 coverage
 *.swp
+.DS_Store
