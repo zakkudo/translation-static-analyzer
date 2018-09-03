@@ -332,14 +332,15 @@ function updateLocalization(localization) {
 function generateLocaleFiles() {
     const options = this.options;
     const locales = options.locales;
-    const previousLocalizationByLanguage = this.localizationByLanguage;
+    const previousLocalizationWithMetadataByLanguage = this.localizationWithMetadataByLanguage;
+    const localizationWithMetadataByLanguage = this.localizationWithMetadataByLanguage = new Map();
     const localizationByLanguage = this.localizationByLanguage = new Map();
     let changed = false;
 
     fs.ensureDirSync(this.templateDirectory);
 
     locales.forEach((l) => {
-        const previousLocalization = previousLocalizationByLanguage.get(l);
+        const localizationWithMetadata = previousLocalizationWithMetadataByLanguage.get(l);
         const localization = readLocalization.call(this, l) || {};
         const nextLocalizationWithMetadata = updateLocalization.call(this, localization);
         const pairs = Object.entries(nextLocalizationWithMetadata);
@@ -348,9 +349,10 @@ function generateLocaleFiles() {
         }, {});
 
         localizationByLanguage.set(l, nextLocalization);
+        localizationWithMetadataByLanguage.set(l, nextLocalizationWithMetadata);
 
-        const sourceCodeChangeUpdatedLocalization = !equal(localization, nextLocalization);
-        const translationChangeUpdatedLocalization = !equal(localization, previousLocalization);
+        const sourceCodeChangeUpdatedLocalization = !equal(localizationWithMetadata, nextLocalizationWithMetadata);
+        const translationChangeUpdatedLocalization = !equal(localization, nextLocalization);
 
         if (sourceCodeChangeUpdatedLocalization || translationChangeUpdatedLocalization) {
             writeLocalizationWithMetadata.call(this, l, nextLocalizationWithMetadata);
@@ -512,6 +514,7 @@ class TranslationStaticAnalyzer {
         this.keysByFilename = new Map();
         this.filenamesByKey = new Map();
         this.localizationByLanguage = new Map();
+        this.localizationWithMetadataByLanguage = new Map();
         this.files = {
             modified: new Set(),
             removed: new Set(),
@@ -584,9 +587,7 @@ class TranslationStaticAnalyzer {
      * updating a source file.
      */
     write() {
-            console.log('BREAK1 write');
         if (generateLocaleFiles.call(this)) {
-            console.log('BREAK2 write');
             writeToTargets.call(this);
         }
 

@@ -280,7 +280,6 @@ describe('TranslationStaticAnalyzer', () => {
                     }
                 ]
             );
-            console.log(JSON.stringify(fs.actions, null, 4));
         });
     });
 
