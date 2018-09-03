@@ -40,7 +40,8 @@ yarn add @zakkudo/translation-static-analyzer
 
 Also consider `@zakkudo/translate-webpack-plugin` which is a wrapper for this library
 for webpack and `@zakkudo/translator` for a library that can read the localization with
-no fuss and apply the translations.
+no fuss and apply the translations.  See the [Polymer 3 Starter Project](https://github.com/zakkudo/polymer-3-starter-project)
+for an example of using this library.
 
 **Example** *(Usage for just translating everything in a project)*  
 ```js
@@ -49,9 +50,23 @@ const analyzer = new TransalationStaticAnalyzer({
     files: 'src/**/*.js', // Analyzes all javscript files in the src directory
     debug: true, // Enables verbose output
     locales: ['fr', 'en'], // generate a locales/fr.json as well as a locales/en.json
-    target: 'src' // Each page in the folder will get it's own subset of translations
+    target: 'src' // Consolidate all of the localizations into src
 });
 analyzer.update();
+
+File Structure
+├── locales <- Your translators translate this
+│   ├── en.json
+│   └── fr.json
+└── src
+    ├── .locales <- Auto generated, should probably be added to .gitignore
+    │   ├── en.json
+    │   └── fr.json
+    └── pages
+        ├── About
+        │   └── index.js
+        └── Search
+            └── index.js
 ```
 **Example** *(Usage for splitting transaltions between dynamically imported pages of a web app)*  
 ```js
@@ -63,6 +78,23 @@ const analyzer = new TransalationStaticAnalyzer({
     target: 'src/pages/*' // Each page in the folder will get it's own subset of translations
 });
 analyzer.update();
+
+File Structure
+├── locales <- Your translators translate this
+│   ├── en.json
+│   └── fr.json
+└── src
+    └── pages
+        ├── About
+        │   ├── .locales <- Auto generated, should probably be added to .gitignore
+        │   │   ├── en.json
+        │   │   └── fr.json
+        │   └── index.js
+        └── Search
+            ├── .locales <- Auto generated, should probably be added to .gitignore
+            │   ├── en.json
+            │   └── fr.json
+            └── index.js
 ```
 **Example** *(Generated translation templates)*  
 ```js
@@ -121,7 +153,7 @@ Class description.
 | options.files | <code>String</code> |  | A glob of the files to pull translations from |
 | [options.debug] | <code>Boolean</code> | <code>false</code> | Show debugging information in the console |
 | [options.locales] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | The locales to generate (eg fr, ja_JP, en) |
-| [options.templates] | <code>String</code> | <code>&#x27;locales&#x27;</code> | The location to store the translator translatable templates for each language |
+| [options.templates] | <code>String</code> |  | The location to store the translator translatable templates for each language |
 | [options.target] | <code>String</code> |  | Where to write the final translations, which can be split between multiple directories for modularity. |
 
 <a name="module_TranslationStaticAnalyzer..TranslationStaticAnalyzer+templateDirectory"></a>
