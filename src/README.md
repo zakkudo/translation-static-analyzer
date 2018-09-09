@@ -148,6 +148,7 @@ File Structure
             └── index.js
 ```
 
+
 ### Configure the analyzer for a split `.locales` directory
 ``` javascript
 const TranslationStaticAnalyzer = require('@zakkudo/translation-static-analyzer');
@@ -186,83 +187,3 @@ for use with [webpack](https://webpack.js.org)
 no fuss and apply the translations.
 - [Polymer 3 Starter Project](https://github.com/zakkudo/polymer-3-starter-project)
 is an example project using this library.
-
-## API
-
-<a name="module_@zakkudo/translation-static-analyzer"></a>
-
-<a name="module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer"></a>
-
-### @zakkudo/translation-static-analyzer~TranslationStaticAnalyzer ⏏
-Class for analyzing javascript source files, extracting the translations, and converting them into
-localization templates.
-
-**Kind**: Exported class
-
-* [~TranslationStaticAnalyzer](#module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer)
-    * [new TranslationStaticAnalyzer(options)](#new_module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer_new)
-    * [.templateDirectory](#module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer+templateDirectory) ⇒ <code>String</code>
-    * [.read([requestFiles])](#module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer+read) ⇒ <code>Boolean</code>
-    * [.write()](#module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer+write)
-    * [.update([requestFiles])](#module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer+update)
-
-<a name="new_module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer_new"></a>
-
-#### new TranslationStaticAnalyzer(options)
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| options | <code>Object</code> |  | The modifiers for how the analyzer is run |
-| options.files | <code>String</code> |  | A [glob pattern](https://www.npmjs.com/package/glob) of the files to pull translations from |
-| [options.debug] | <code>Boolean</code> | <code>false</code> | Show debugging information in the console |
-| [options.locales] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | The locales to generate (eg fr, ja_JP, en) |
-| [options.templates] | <code>String</code> |  | The location to store the translator translatable templates for each language. Defaults to making a `locales` directory in the current working directory |
-| [options.target] | <code>String</code> |  | Where to write the final translations, which can be split between multiple directories for modularity. If there are no targets, no `.locales` directory will be generated anywhere. |
-
-<a name="module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer+templateDirectory"></a>
-
-#### translationStaticAnalyzer.templateDirectory ⇒ <code>String</code>
-**Kind**: instance property of [<code>TranslationStaticAnalyzer</code>](#module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer)  
-**Returns**: <code>String</code> - The path to the directory which holds
-the translation templates that are dynamically updated
-by code changes and should be used by translators
-to add the localizations.  
-<a name="module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer+read"></a>
-
-#### translationStaticAnalyzer.read([requestFiles]) ⇒ <code>Boolean</code>
-Read changes from the source files and update the database stored in the current
-analyzer instance. No changes will be written to the templates and all reads are
-accumulative for the next write. Use the `requestFiles` option if you want to hook
-this method up to a file watcher which can supply a list of files that have changed.
-
-**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer)  
-**Returns**: <code>Boolean</code> - True if some some of the modified files matches the
-file option passed on initialization  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [requestFiles] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | A subset of files from the `options.files` glob to read or non to reread all files. Any files that are supplied to this method that are not part of the `options.files` glob are simply ignored. |
-
-<a name="module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer+write"></a>
-
-#### translationStaticAnalyzer.write()
-Write the current database to the templates and targets. This method is
-useful to force an update of the targets if a
-language file template in `templateDirectory` is updated without
-updating a source file.
-
-**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer)  
-<a name="module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer+update"></a>
-
-#### translationStaticAnalyzer.update([requestFiles])
-Updates the translations to match the source files, using logic to try to reduce disk writes
-if no source files changed.  This method was designed to be hooked up to a file watcher for the source
-code. *There will be no changes if this method is called after there is a manual change to the translation
-templates.  It only cares about source files.*
-
-**Kind**: instance method of [<code>TranslationStaticAnalyzer</code>](#module_@zakkudo/translation-static-analyzer..TranslationStaticAnalyzer)  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [requestFiles] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | The files or none to update everything in the options.files glob pattern. |
-
