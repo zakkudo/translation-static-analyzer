@@ -6,7 +6,7 @@ A library for scanning javscript files to build translation mappings in json aut
 [![Coverage Status](https://coveralls.io/repos/github/zakkudo/translation-static-analyzer/badge.svg?branch=master)](https://coveralls.io/github/zakkudo/translation-static-analyzer?branch=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/zakkudo/translation-static-analyzer/badge.svg)](https://snyk.io/test/github/zakkudo/translation-static-analyzer)
 [![Node](https://img.shields.io/node/v/@zakkudo/translation-static-analyzer.svg)](https://nodejs.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/npm/l/@zakkudo/translation-static-analyzer.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 ## Why use this?
 
