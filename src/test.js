@@ -30,6 +30,21 @@ describe('TranslationStaticAnalyzer', () => {
         fs.mockReset();
     });
 
+    it('does nothing when write is called and there is no template', () => {
+        const analyzer = new TranslationStaticAnalyzer({
+            files: 'test files',
+            locales: ['existing'],
+            target: 'test directory targets',
+        });
+
+        delete analyzer.instance.cache.template;
+        fs.actions.length = 0;
+
+        analyzer.write();
+
+        expect(fs.actions).toEqual([]);
+    });
+
     it('calls cleanup on exit', () => {
         const analyzer = new TranslationStaticAnalyzer({
             files: 'test files',

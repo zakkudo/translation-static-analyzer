@@ -478,7 +478,10 @@ class TranslationStaticAnalyzer {
      * updating a source file.
      */
     write() {
-        if (generateLocaleFiles.call(this)) {
+        const cache = this.instance.cache || {};
+        const template = cache.template;
+
+        if (template && generateLocaleFiles.call(this)) {
             writeToTargets.call(this);
         }
 
