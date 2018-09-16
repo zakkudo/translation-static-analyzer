@@ -9,10 +9,16 @@ fs.actions = [];
 let filesystem = {};
 
 fs.mockReset = () => {
-    fs.mkdtempSync.mockReturnValue('/test/tmp/' + increment++);
-
     filesystem = JSON.parse(JSON.stringify(originalFileSystem));
     increment = 0;
+
+    fs.mkdtempSync.mockImplementation(() => {
+        const filename ='/test/tmp/' + increment;
+
+        increment += 1;
+
+        return filename;
+    });
 
     fs.ensureDirSync.mockImplementation(() => 0);
     fs.removeSync.mockImplementation(() => 0);
