@@ -37,9 +37,21 @@ function continueUntilStackLengthIs(text, state, length) {
     return state;
 }
 
+function readStringArgument(text, {index, stack, lineNumber}, name) {
+    const start = continueToQuoteStart(text, {index, stack, lineNumber});
+    const end = continueUntilStackLengthIs(text, {...start}, start.stack.length - 1);
+    const stringArgument = text.substring(start.index, end.index - 1);
+
+    if (start.index === end.index - 1) {
+        throw new SyntaxError(`${name} string argument is empty`);
+    }
+
+    return [end, stringArgument];
+}
+
 /**
  * Parses the information from a localization function, include the function string,
- * the key, the line number.
+ * the key, the line number. Parses __, __n, __p, __np.
  * @param {String} text - The text blob
  * @param {Number} index - The offset on the text
  * @param {Array<String>} stack The current code stack
@@ -50,31 +62,42 @@ function continueUntilStackLengthIs(text, state, length) {
  */
 module.exports = function parseLocalizationFunction(text, {index, stack, lineNumber}) {
     const functionStart = {index, stack, lineNumber};
+    let plural = false;
+    let particular = false;
 
     index += 1;
 
     if (text.charAt(index + 1) === 'n') {
+        plural = true;
+        index += 1;
+    }
+
+    if (text.charAt(index + 1) === 'p') {
+        particular = true;
         index += 1;
     }
 
     if (text.charAt(index + 1) === '(') {
         index += 1;
-
     }
 
-    const keyStart = continueToQuoteStart(text, {index, stack, lineNumber});
-    const keyEnd = continueUntilStackLengthIs(text, {...keyStart}, keyStart.stack.length - 1);
+    const metadata = {plural, particular};
+    let state = {index, stack, lineNumber};
 
-    if (keyStart.index === keyEnd.index - 1) {
-        throw new SyntaxError('empty localization key');
+    if (particular) {
+        let context;
+        [state, context] = readStringArgument(text, state, 'context');
+        metadata.context = context;
     }
 
-    const functionEnd = (keyEnd.stack[0] === '(') ?
-        continueUntilStackLengthIs(text, {...keyEnd}, keyEnd.stack.length - 1) : keyEnd;
+    let key;
+    [state, key] = readStringArgument(text, state, 'key');
+    metadata.key = key;
 
-    return {
-        ...functionEnd,
-        key: text.substring(keyStart.index, keyEnd.index - 1),
-        fn: text.substring(functionStart.index, functionEnd.index),
-    };
+    const functionEnd = (state.stack[0] === '(') ?
+        continueUntilStackLengthIs(text, {...state}, state.stack.length - 1) : state;
+    const fn = text.substring(functionStart.index, functionEnd.index);
+    metadata.fn = fn;
+
+    return Object.assign({}, functionEnd, metadata);
 }

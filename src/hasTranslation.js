@@ -1,4 +1,24 @@
 /**
+ * @private
+ */
+function singularHasTranslation(data) {
+    return Boolean(data.length);
+}
+
+/**
+ * @private
+ */
+function pluralHasTranslation(data) {
+    return Object.values(data || {}).some((v) => {
+        if (Object(v) === v) {
+            return pluralHasTranslation(v);
+        }
+
+        return singularHasTranslation(v);
+    });
+}
+
+/**
  * Checks of a translation key-value pair has been created.
  * @param {*} data - An object that is spidered looking for
  * non-empty translation strings
@@ -6,23 +26,9 @@
  * @private
  */
 module.exports = function hasTranslation(data) {
-    if (Object(data) === data) {
-        const keys = Object.keys(data);
-
-        if (!keys.length) {
-            return false;
-        }
-
-        return keys.some((k) => {
-            if (typeof data[k] === 'string') {
-                return Boolean(data[k].length);
-            } else {
-                return hasTranslation(data[k]);
-            }
-        });
-    } else if (typeof data === 'string') {
-        return Boolean(data.length);
+    if (typeof data === 'string') {
+        return singularHasTranslation(data);
     }
 
-    return false;
+    return pluralHasTranslation(data);
 }

@@ -36,6 +36,10 @@ glob.sync.mockImplementation((pattern) => {
             'src/pages/Search',
             'src/pages/About',
         ];
+    } else if (pattern === 'test empty keys') {
+        return [
+            'src/pages/EmptyKeys/index.js',
+        ];
     }
 
     return [];

@@ -3,6 +3,10 @@ const translationStartPatterns = [
     '__`',
     `__n(`,
     '__n`',
+    '__p(',
+    '__p`',
+    `__np(`,
+    '__np`',
 ];
 
 const length = translationStartPatterns

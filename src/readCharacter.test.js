@@ -221,9 +221,38 @@ describe('plugins/readCharacter', () => {
             localization: {
                 key: 'a',
                 fn: '__("a")',
+                plural: false,
+                particular: false,
             }
         }, {
             index: 8,
+            stack: [],
+            lineNumber: 0,
+        }]);
+    });
+
+    it('parses basic translation function with context', () => {
+        let state = {index: 0, stack: [], lineNumber: 0}
+        const text = '__p("a", "b")c';
+        const actual = [];
+
+        while ((state = readCharacter(text, state)) !== null) {
+            actual.push(state);
+        }
+
+        expect(actual).toEqual([{
+            index: 13,
+            stack: [],
+            lineNumber: 0,
+            localization: {
+                context: 'a',
+                key: 'b',
+                fn: '__p("a", "b")',
+                plural: false,
+                particular: true,
+            }
+        }, {
+            index: 14,
             stack: [],
             lineNumber: 0,
         }]);
@@ -245,9 +274,38 @@ describe('plugins/readCharacter', () => {
             localization: {
                 key: '%d cat',
                 fn: '__n("%d cat", "%d cats", 1)',
+                plural: true,
+                particular: false,
             }
         }, {
             index: 28,
+            stack: [],
+            lineNumber: 0,
+        }]);
+    });
+
+    it('parses basic plural translation function with context', () => {
+        let state = {index: 0, stack: [], lineNumber: 0}
+        const text = '__np("a", "%d cat", "%d cats", 1)b';
+        const actual = [];
+
+        while ((state = readCharacter(text, state)) !== null) {
+            actual.push(state);
+        }
+
+        expect(actual).toEqual([{
+            index: 33,
+            stack: [],
+            lineNumber: 0,
+            localization: {
+                key: '%d cat',
+                context: 'a',
+                fn: '__np("a", "%d cat", "%d cats", 1)',
+                plural: true,
+                particular: true,
+            }
+        }, {
+            index: 34,
             stack: [],
             lineNumber: 0,
         }]);
@@ -285,7 +343,9 @@ describe('plugins/readCharacter', () => {
                 lineNumber: 0,
                 localization: {
                     "key": "a",
-                    "fn": "__(\"a\")"
+                    "fn": "__(\"a\")",
+                    particular: false,
+                    plural: false,
                 }
             }, {
                 index: 12,
@@ -390,7 +450,9 @@ describe('plugins/readCharacter', () => {
                 lineNumber: 0,
                 localization: {
                     "key": "a",
-                    "fn": "__(\"a\")"
+                    "fn": "__(\"a\")",
+                    particular: false,
+                    plural: false,
                 }
             }, {
                 index: 12,
@@ -495,7 +557,9 @@ describe('plugins/readCharacter', () => {
                 lineNumber: 0,
                 localization: {
                     "key": "a",
-                    "fn": "__(\"a\")"
+                    "fn": "__(\"a\")",
+                    particular: false,
+                    plural: false
                 }
             }, {
                 index: 11,
@@ -579,7 +643,9 @@ describe('plugins/readCharacter', () => {
                 lineNumber: 0,
                 localization: {
                     "key": "a",
-                    "fn": "__(\"a\")"
+                    "fn": "__(\"a\")",
+                    plural: false,
+                    particular: false,
                 }
             }, {
                 index: 13,
@@ -664,6 +730,8 @@ describe('plugins/readCharacter', () => {
             localization: {
                 key: 'a',
                 fn: '__`a`',
+                particular: false,
+                plural: false,
             }
         }, {
             index: 6,
@@ -764,7 +832,7 @@ describe('plugins/readCharacter', () => {
             while ((state = readCharacter(text, state)) !== null) {
                 actual.push(state);
             }
-        }).toThrow(new SyntaxError('empty localization key'));
+        }).toThrow(new SyntaxError('key string argument is empty'));
 
         expect(actual).toEqual([]);
 
