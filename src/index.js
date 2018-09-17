@@ -328,6 +328,19 @@ function loadSourceFiles() {
 /**
  * @private
  */
+function writeIndexTarget(targetDirectory, subLocalization) {
+    const directory = path.resolve(targetDirectory, '.locales');
+    const filename = path.resolve(directory, `index.json`);
+    const previousSubLocalization = readJSON5FileWithFallback.call(this, filename);
+
+    if (!equal(subLocalization, previousSubLocalization)) {
+        fs.writeFileSync(filename, JSON.stringify(subLocalization, null, 4));
+    }
+}
+
+/**
+ * @private
+ */
 function writeToTargets() {
     const options = this.options;
     const locales = options.locales;
@@ -335,6 +348,7 @@ function writeToTargets() {
     const targetDirectories = Object.keys(filesByTargetDirectory);
     const localizationByLanguage = this.localizationByLanguage;
     const keysByFilename = this.keysByFilename;
+    const aggregate = {};
 
     targetDirectories.forEach((t) => {
         // This is intentionally a hidden directory. It should generally not be included
@@ -365,10 +379,14 @@ function writeToTargets() {
 
             const previousSubLocalization = readJSON5FileWithFallback.call(this, filename);
 
+            aggregate[l] = subLocalization;
+
             if (!equal(subLocalization, previousSubLocalization)) {
                 fs.writeFileSync(filename, JSON.stringify(subLocalization, null, 4));
             }
         });
+
+        writeIndexTarget(t, aggregate);
     });
 }
 

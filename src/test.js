@@ -134,6 +134,16 @@ describe('TranslationStaticAnalyzer', () => {
             },
             {
                 "action": "read",
+                "filename": "src/pages/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/.locales/index.json",
+                "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
+            },
+            {
+                "action": "read",
                 "filename": "src/pages/Search/.locales/existing.json",
                 "data": "{\"Search\":\"\"}"
             },
@@ -141,6 +151,16 @@ describe('TranslationStaticAnalyzer', () => {
                 "action": "write",
                 "filename": "src/pages/Search/.locales/existing.json",
                 "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
             },
             {
                 "action": "read",
@@ -154,6 +174,16 @@ describe('TranslationStaticAnalyzer', () => {
             },
             {
                 "action": "read",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
+            },
+            {
+                "action": "read",
                 "filename": "src/application/.locales/existing.json",
                 "data": null
             },
@@ -161,15 +191,21 @@ describe('TranslationStaticAnalyzer', () => {
                 "action": "write",
                 "filename": "src/application/.locales/existing.json",
                 "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+            },
+            {
+                "action": "read",
+                "filename": "src/application/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/application/.locales/index.json",
+                "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
             }
 		]);
 
         fs.actions.length = 0;
         analyzer.update();
-
-
-
-            console.log(JSON.stringify(fs.actions, null, 4));
 
 
 		expect(fs.actions).toEqual([
@@ -293,6 +329,16 @@ describe('TranslationStaticAnalyzer', () => {
                     },
                     {
                         "action": "read",
+                        "filename": "src/pages/.locales/index.json",
+                        "data": null
+                    },
+                    {
+                        "action": "write",
+                        "filename": "src/pages/.locales/index.json",
+                        "data": "{\n    \"existing\": {}\n}"
+                    },
+                    {
+                        "action": "read",
                         "filename": "src/pages/Search/.locales/existing.json",
                         "data": "{\"Search\":\"\"}"
                     },
@@ -303,8 +349,28 @@ describe('TranslationStaticAnalyzer', () => {
                     },
                     {
                         "action": "read",
+                        "filename": "src/pages/Search/.locales/index.json",
+                        "data": null
+                    },
+                    {
+                        "action": "write",
+                        "filename": "src/pages/Search/.locales/index.json",
+                        "data": "{\n    \"existing\": {}\n}"
+                    },
+                    {
+                        "action": "read",
                         "filename": "src/pages/About/.locales/existing.json",
                         "data": "{}"
+                    },
+                    {
+                        "action": "read",
+                        "filename": "src/pages/About/.locales/index.json",
+                        "data": null
+                    },
+                    {
+                        "action": "write",
+                        "filename": "src/pages/About/.locales/index.json",
+                        "data": "{\n    \"existing\": {}\n}"
                     },
                     {
                         "action": "read",
@@ -315,6 +381,16 @@ describe('TranslationStaticAnalyzer', () => {
                         "action": "write",
                         "filename": "src/application/.locales/existing.json",
                         "data": "{}"
+                    },
+                    {
+                        "action": "read",
+                        "filename": "src/application/.locales/index.json",
+                        "data": null
+                    },
+                    {
+                        "action": "write",
+                        "filename": "src/application/.locales/index.json",
+                        "data": "{\n    \"existing\": {}\n}"
                     }
                 ]
             );
@@ -338,7 +414,7 @@ describe('TranslationStaticAnalyzer', () => {
 
             analyzer.update(['src/pages/Search/index.js']);
 
-			expect(fs.actions).toEqual([
+            expect(fs.actions).toEqual([
                 {
                     "action": "read",
                     "filename": "./locales/existing.json",
@@ -356,13 +432,28 @@ describe('TranslationStaticAnalyzer', () => {
                 },
                 {
                     "action": "read",
+                    "filename": "src/pages/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
+                },
+                {
+                    "action": "read",
                     "filename": "src/pages/About/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
                 },
                 {
                     "action": "read",
+                    "filename": "src/pages/About/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
+                },
+                {
+                    "action": "read",
                     "filename": "src/application/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/application/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
                 }
 			]);
         });
@@ -493,6 +584,11 @@ describe('TranslationStaticAnalyzer', () => {
                 },
                 {
                     "action": "read",
+                    "filename": "src/pages/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
+                },
+                {
+                    "action": "read",
                     "filename": "src/pages/Search/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
                 },
@@ -503,13 +599,33 @@ describe('TranslationStaticAnalyzer', () => {
                 },
                 {
                     "action": "read",
+                    "filename": "src/pages/Search/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
+                },
+                {
+                    "action": "write",
+                    "filename": "src/pages/Search/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
+                },
+                {
+                    "action": "read",
                     "filename": "src/pages/About/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
                 },
                 {
                     "action": "read",
+                    "filename": "src/pages/About/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
+                },
+                {
+                    "action": "read",
                     "filename": "src/application/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/application/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
                 }
             ]);
         });
@@ -553,13 +669,28 @@ describe('TranslationStaticAnalyzer', () => {
                 },
                 {
                     "action": "read",
+                    "filename": "src/pages/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
+                },
+                {
+                    "action": "read",
                     "filename": "src/pages/About/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
                 },
                 {
                     "action": "read",
+                    "filename": "src/pages/About/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
+                },
+                {
+                    "action": "read",
                     "filename": "src/application/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/application/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
                 },
                 {
                     "action": "read",
@@ -570,6 +701,16 @@ describe('TranslationStaticAnalyzer', () => {
                     "action": "write",
                     "filename": "src/pages/Added/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "src/pages/Added/.locales/index.json",
+                    "data": null
+                },
+                {
+                    "action": "write",
+                    "filename": "src/pages/Added/.locales/index.json",
+                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
                 }
 			]);
         });
@@ -740,6 +881,16 @@ describe('TranslationStaticAnalyzer', () => {
             },
             {
                 "action": "read",
+                "filename": "src/pages/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/.locales/index.json",
+                "data": "{\n    \"new\": {}\n}"
+            },
+            {
+                "action": "read",
                 "filename": "src/pages/Search/.locales/new.json",
                 "data": null
             },
@@ -747,6 +898,16 @@ describe('TranslationStaticAnalyzer', () => {
                 "action": "write",
                 "filename": "src/pages/Search/.locales/new.json",
                 "data": "{}"
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": "{\n    \"new\": {}\n}"
             },
             {
                 "action": "read",
@@ -760,6 +921,16 @@ describe('TranslationStaticAnalyzer', () => {
             },
             {
                 "action": "read",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": "{\n    \"new\": {}\n}"
+            },
+            {
+                "action": "read",
                 "filename": "src/application/.locales/new.json",
                 "data": null
             },
@@ -767,6 +938,16 @@ describe('TranslationStaticAnalyzer', () => {
                 "action": "write",
                 "filename": "src/application/.locales/new.json",
                 "data": "{}"
+            },
+            {
+                "action": "read",
+                "filename": "src/application/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/application/.locales/index.json",
+                "data": "{\n    \"new\": {}\n}"
             }
         ]);
     });
@@ -827,6 +1008,16 @@ describe('TranslationStaticAnalyzer', () => {
             },
             {
                 "action": "read",
+                "filename": "src/pages/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/.locales/index.json",
+                "data": "{\n    \"new\": {}\n}"
+            },
+            {
+                "action": "read",
                 "filename": "src/pages/Search/.locales/new.json",
                 "data": null
             },
@@ -834,6 +1025,16 @@ describe('TranslationStaticAnalyzer', () => {
                 "action": "write",
                 "filename": "src/pages/Search/.locales/new.json",
                 "data": "{}"
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": "{\n    \"new\": {}\n}"
             },
             {
                 "action": "read",
@@ -847,6 +1048,16 @@ describe('TranslationStaticAnalyzer', () => {
             },
             {
                 "action": "read",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": "{\n    \"new\": {}\n}"
+            },
+            {
+                "action": "read",
                 "filename": "src/application/.locales/new.json",
                 "data": null
             },
@@ -854,6 +1065,16 @@ describe('TranslationStaticAnalyzer', () => {
                 "action": "write",
                 "filename": "src/application/.locales/new.json",
                 "data": "{}"
+            },
+            {
+                "action": "read",
+                "filename": "src/application/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/application/.locales/index.json",
+                "data": "{\n    \"new\": {}\n}"
             }
         ]);
     });
@@ -934,6 +1155,16 @@ describe('TranslationStaticAnalyzer', () => {
             },
             {
                 "action": "read",
+                "filename": "src/pages/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/.locales/index.json",
+                "data": "{\n    \"existing\": {}\n}"
+            },
+            {
+                "action": "read",
                 "filename": "src/pages/Search/.locales/existing.json",
                 "data": "{\"Search\":\"\"}"
             },
@@ -944,8 +1175,28 @@ describe('TranslationStaticAnalyzer', () => {
             },
             {
                 "action": "read",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": "{\n    \"existing\": {}\n}"
+            },
+            {
+                "action": "read",
                 "filename": "src/pages/About/.locales/existing.json",
                 "data": "{}"
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": "{\n    \"existing\": {}\n}"
             },
             {
                 "action": "read",
@@ -956,6 +1207,16 @@ describe('TranslationStaticAnalyzer', () => {
                 "action": "write",
                 "filename": "src/application/.locales/existing.json",
                 "data": "{}"
+            },
+            {
+                "action": "read",
+                "filename": "src/application/.locales/index.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/application/.locales/index.json",
+                "data": "{\n    \"existing\": {}\n}"
             }
 		]);
 	});
