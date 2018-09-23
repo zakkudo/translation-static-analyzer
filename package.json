@@ -3,6 +3,7 @@
     "version": "0.0.17",
     "description": "A library for generating localization files using static analysis of source files similar to gettext",
     "keywords": [
+        "gettext",
         "i18n",
         "internationalization",
         "l10n",
@@ -43,8 +44,7 @@
         "fs-extra": "^7.0.0",
         "glob": "^7.1.2",
         "json5": "^1.0.1",
-        "safe-eval": "^0.4.1",
-        "y18n": "^4.0.0"
+        "safe-eval": "^0.4.1"
     },
     "scripts": {
         "build": "scripts/build.sh",

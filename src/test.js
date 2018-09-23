@@ -1,3 +1,5 @@
+/*eslint max-len: ["error", {"ignoreStrings": true}]*/
+
 const TranslationStaticAnalyzer = require('.');
 const fs = require('fs-extra');
 const console = require('console');
@@ -8,7 +10,6 @@ jest.mock('fs-extra');
 jest.mock('console');
 
 const mocks = {};
-
 const path = require('path');
 
 describe('TranslationStaticAnalyzer', () => {
@@ -33,6 +34,26 @@ describe('TranslationStaticAnalyzer', () => {
         fs.mockReset();
     });
 
+    it('handles empty key gracefully', () => {
+        const analyzer = new TranslationStaticAnalyzer({
+            files: 'test empty keys',
+            locales: ['existing'],
+            target: 'test directory targets',
+        });
+
+        fs.actions.length = 0;
+
+        analyzer.read();
+
+        expect(fs.actions).toEqual([
+            {
+                "action": "read",
+                "filename": "src/pages/EmptyKeys/index.js",
+                "data": "export default class Application extends Component {\n     static get title() {\n         return __('') + __n('') + __np('') + __p('');\n     }\n};"
+            }
+        ]);
+    });
+
     it('does nothing when write is called and there is no template', () => {
         const analyzer = new TranslationStaticAnalyzer({
             files: 'test files',
@@ -40,7 +61,7 @@ describe('TranslationStaticAnalyzer', () => {
             target: 'test directory targets',
         });
 
-        delete analyzer.instance.cache.template;
+        delete analyzer.referenceTemplate;
         fs.actions.length = 0;
 
         analyzer.write();
@@ -48,38 +69,162 @@ describe('TranslationStaticAnalyzer', () => {
         expect(fs.actions).toEqual([]);
     });
 
-    it('handles write gracefully when cache object is missing', () => {
+    it('filters out traslation strings accidentally placed where contexts should exist', () => {
         const analyzer = new TranslationStaticAnalyzer({
             files: 'test files',
             locales: ['existing'],
             target: 'test directory targets',
         });
 
-        delete analyzer.instance.cache;
+        analyzer.read();
+
+        fs.writeFileSync('./locales/existing.json', JSON.stringify({
+            'test key': 'test invalid localization'
+        }));
+
         fs.actions.length = 0;
 
         analyzer.write();
 
-        expect(fs.actions).toEqual([]);
+        expect(fs.actions).toEqual([
+            {
+                "action": "read",
+                "filename": "./locales/existing.json",
+                "data": "{\"test key\":\"test invalid localization\"}"
+            },
+            {
+                "action": "write",
+                "filename": "./locales/existing.json",
+                "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // NEW\n        // src/index.js:2\n        \"default\": \"\"\n    },\n    \"Search\": {\n        // NEW\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    }\n}"
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/.locales/existing.json",
+                "data": null
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/Search/.locales/existing.json",
+                "data": "{\"Search\":\"\"}"
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/Search/.locales/existing.json",
+                "data": "{}"
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": "{\n    \"existing\": {}\n}"
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/About/.locales/existing.json",
+                "data": "{}"
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": "{\n    \"existing\": {}\n}"
+            },
+            {
+                "action": "read",
+                "filename": "src/application/.locales/existing.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/application/.locales/index.json",
+                "data": "{\n    \"existing\": {}\n}"
+            }
+        ]);
     });
 
-    it('calls cleanup on exit', () => {
+    it("doesn't collapse the localization when there is a default and non-default context", () => {
         const analyzer = new TranslationStaticAnalyzer({
             files: 'test files',
             locales: ['existing'],
             target: 'test directory targets',
         });
 
-        const exitCallback = mocks.processOn.mock.calls[0];
-        const sigIntCallback = mocks.processOn.mock.calls[1];
 
-        expect(exitCallback[0]).toEqual('exit');
-        expect(sigIntCallback[0]).toEqual('SIGINT');
+        fs.writeFileSync('src/pages/Search/index.js', `export default __('test key') + __p('menuitem', 'test key');`);
 
-        exitCallback[1]();
-        sigIntCallback[1]();
+        analyzer.read();
 
-        expect(fs.removeSync.mock.calls).toEqual([["/test/tmp/0"], ["/test/tmp/0"]]);
+        fs.writeFileSync('./locales/existing.json', JSON.stringify({
+            'test key': {
+                'default': 'test default translation context',
+                'menuitem': 'test menuitem translation context',
+            }
+        }));
+
+        fs.actions.length = 0;
+
+        analyzer.write();
+
+        expect(fs.actions).toEqual([
+            {
+                "action": "read",
+                "filename": "./locales/existing.json",
+                "data": "{\"test key\":{\"default\":\"test default translation context\",\"menuitem\":\"test menuitem translation context\"}}"
+            },
+            {
+                "action": "write",
+                "filename": "./locales/existing.json",
+                "data": "{\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // NEW\n        // src/index.js:2\n        \"default\": \"\"\n    },\n    \"Search\": {\n        // NEW\n        // src/pages/About/index.js:6\n        \"default\": \"\"\n    },\n    \"test key\": {\n        // src/pages/Search/index.js:0\n        \"default\": \"test default translation context\",\n        // src/pages/Search/index.js:0\n        \"menuitem\": \"test menuitem translation context\"\n    }\n}"
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/.locales/existing.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/.locales/existing.json",
+                "data": "{\n    \"test key\": {\n        \"default\": \"test default translation context\",\n        \"menuitem\": \"test menuitem translation context\"\n    }\n}"
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/.locales/index.json",
+                "data": "{\n    \"existing\": {\n        \"test key\": {\n            \"default\": \"test default translation context\",\n            \"menuitem\": \"test menuitem translation context\"\n        }\n    }\n}"
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/Search/.locales/existing.json",
+                "data": "{\"Search\":\"\"}"
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/Search/.locales/existing.json",
+                "data": "{\n    \"test key\": {\n        \"default\": \"test default translation context\",\n        \"menuitem\": \"test menuitem translation context\"\n    }\n}"
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/Search/.locales/index.json",
+                "data": "{\n    \"existing\": {\n        \"test key\": {\n            \"default\": \"test default translation context\",\n            \"menuitem\": \"test menuitem translation context\"\n        }\n    }\n}"
+            },
+            {
+                "action": "read",
+                "filename": "src/pages/About/.locales/existing.json",
+                "data": "{}"
+            },
+            {
+                "action": "write",
+                "filename": "src/pages/About/.locales/index.json",
+                "data": "{\n    \"existing\": {}\n}"
+            },
+            {
+                "action": "read",
+                "filename": "src/application/.locales/existing.json",
+                "data": null
+            },
+            {
+                "action": "write",
+                "filename": "src/application/.locales/index.json",
+                "data": "{\n    \"existing\": {}\n}"
+            }
+        ]);
     });
 
     it('works with defaults for language with some prefilled data', () => {
@@ -91,11 +236,11 @@ describe('TranslationStaticAnalyzer', () => {
 
         analyzer.update();
 
-		expect(fs.actions).toEqual([
+        expect(fs.actions).toEqual([
             {
                 "action": "read",
                 "filename": "src/pages/Search/index.js",
-                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';\n\n    }\n};"
+                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} {{__p('menuitem', 'Search')}} <div>{{__n('%d result', '%d results', 2)}}</div> {{__np('footer', '%d view', '%d views', 23)}}';\n    }\n};"
             },
             {
                 "action": "read",
@@ -115,12 +260,12 @@ describe('TranslationStaticAnalyzer', () => {
             {
                 "action": "read",
                 "filename": "./locales/existing.json",
-                "data": "{\"Search\":\"検索\",\"test unused key\":\"test value\",\"Application\":\"アプリケーション\"}"
+                "data": "{\"Search\":{\"default\":\"検索\"},\"test unused key\":{\"default\":\"test value\"},\"Application\":{\"default\":\"アプリケーション\"}}"
             },
             {
                 "action": "write",
                 "filename": "./locales/existing.json",
-                "data": "{\n    // NEW\n    // src/pages/Search/index.js:6\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // src/index.js:2\n    \"Application\": \"アプリケーション\",\n    // src/pages/About/index.js:6\n    // src/pages/Search/index.js:2\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"検索\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
             },
             {
                 "action": "read",
@@ -131,11 +276,6 @@ describe('TranslationStaticAnalyzer', () => {
                 "action": "write",
                 "filename": "src/pages/.locales/existing.json",
                 "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
-            },
-            {
-                "action": "read",
-                "filename": "src/pages/.locales/index.json",
-                "data": null
             },
             {
                 "action": "write",
@@ -153,11 +293,6 @@ describe('TranslationStaticAnalyzer', () => {
                 "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
             },
             {
-                "action": "read",
-                "filename": "src/pages/Search/.locales/index.json",
-                "data": null
-            },
-            {
                 "action": "write",
                 "filename": "src/pages/Search/.locales/index.json",
                 "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
@@ -171,11 +306,6 @@ describe('TranslationStaticAnalyzer', () => {
                 "action": "write",
                 "filename": "src/pages/About/.locales/existing.json",
                 "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
-            },
-            {
-                "action": "read",
-                "filename": "src/pages/About/.locales/index.json",
-                "data": null
             },
             {
                 "action": "write",
@@ -193,11 +323,6 @@ describe('TranslationStaticAnalyzer', () => {
                 "data": "{\n    \"Application\": \"アプリケーション\"\n}"
             },
             {
-                "action": "read",
-                "filename": "src/application/.locales/index.json",
-                "data": null
-            },
-            {
                 "action": "write",
                 "filename": "src/application/.locales/index.json",
                 "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
@@ -207,12 +332,11 @@ describe('TranslationStaticAnalyzer', () => {
         fs.actions.length = 0;
         analyzer.update();
 
-
-		expect(fs.actions).toEqual([
+        expect(fs.actions).toEqual([
             {
                 "action": "read",
                 "filename": "src/pages/Search/index.js",
-                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';\n\n    }\n};"
+                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} {{__p('menuitem', 'Search')}} <div>{{__n('%d result', '%d results', 2)}}</div> {{__np('footer', '%d view', '%d views', 23)}}';\n    }\n};"
             },
             {
                 "action": "read",
@@ -232,9 +356,9 @@ describe('TranslationStaticAnalyzer', () => {
             {
                 "action": "read",
                 "filename": "./locales/existing.json",
-                "data": "{\n    // NEW\n    // src/pages/Search/index.js:6\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // src/index.js:2\n    \"Application\": \"アプリケーション\",\n    // src/pages/About/index.js:6\n    // src/pages/Search/index.js:2\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"検索\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
             }
-		]);
+        ]);
     });
 
     describe('read', () => {
@@ -251,7 +375,7 @@ describe('TranslationStaticAnalyzer', () => {
                     {
                         "action": "read",
                         "filename": "src/pages/Search/index.js",
-                        "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';\n\n    }\n};"
+                        "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} {{__p('menuitem', 'Search')}} <div>{{__n('%d result', '%d results', 2)}}</div> {{__np('footer', '%d view', '%d views', 23)}}';\n    }\n};"
                     },
                     {
                         "action": "read",
@@ -282,13 +406,14 @@ describe('TranslationStaticAnalyzer', () => {
             fs.actions.length = 0;
 
             expect(analyzer.read(['src/pages/Search/index.js'])).toBe(true);
+
             expect(fs.actions).toEqual(
                 [
                     {
                         "action": "read",
                         "filename": "src/pages/Search/index.js",
-                        "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';\n\n    }\n};"
-                    },
+                        "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} {{__p('menuitem', 'Search')}} <div>{{__n('%d result', '%d results', 2)}}</div> {{__np('footer', '%d view', '%d views', 23)}}';\n    }\n};"
+                    }
                 ]
             );
         });
@@ -307,91 +432,6 @@ describe('TranslationStaticAnalyzer', () => {
 
             expect(fs.actions).toEqual(
                 [
-                    {
-                        "action": "read",
-                        "filename": "./locales/existing.json",
-                        "data": "{\"Search\":\"検索\",\"test unused key\":\"test value\",\"Application\":\"アプリケーション\"}"
-                    },
-                    {
-                        "action": "write",
-                        "filename": "./locales/existing.json",
-                        "data": "{\n    // NEW\n    \"%s result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    \"About\": \"\",\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
-                    },
-                    {
-                        "action": "read",
-                        "filename": "src/pages/.locales/existing.json",
-                        "data": null
-                    },
-                    {
-                        "action": "write",
-                        "filename": "src/pages/.locales/existing.json",
-                        "data": "{}"
-                    },
-                    {
-                        "action": "read",
-                        "filename": "src/pages/.locales/index.json",
-                        "data": null
-                    },
-                    {
-                        "action": "write",
-                        "filename": "src/pages/.locales/index.json",
-                        "data": "{\n    \"existing\": {}\n}"
-                    },
-                    {
-                        "action": "read",
-                        "filename": "src/pages/Search/.locales/existing.json",
-                        "data": "{\"Search\":\"\"}"
-                    },
-                    {
-                        "action": "write",
-                        "filename": "src/pages/Search/.locales/existing.json",
-                        "data": "{}"
-                    },
-                    {
-                        "action": "read",
-                        "filename": "src/pages/Search/.locales/index.json",
-                        "data": null
-                    },
-                    {
-                        "action": "write",
-                        "filename": "src/pages/Search/.locales/index.json",
-                        "data": "{\n    \"existing\": {}\n}"
-                    },
-                    {
-                        "action": "read",
-                        "filename": "src/pages/About/.locales/existing.json",
-                        "data": "{}"
-                    },
-                    {
-                        "action": "read",
-                        "filename": "src/pages/About/.locales/index.json",
-                        "data": null
-                    },
-                    {
-                        "action": "write",
-                        "filename": "src/pages/About/.locales/index.json",
-                        "data": "{\n    \"existing\": {}\n}"
-                    },
-                    {
-                        "action": "read",
-                        "filename": "src/application/.locales/existing.json",
-                        "data": null
-                    },
-                    {
-                        "action": "write",
-                        "filename": "src/application/.locales/existing.json",
-                        "data": "{}"
-                    },
-                    {
-                        "action": "read",
-                        "filename": "src/application/.locales/index.json",
-                        "data": null
-                    },
-                    {
-                        "action": "write",
-                        "filename": "src/application/.locales/index.json",
-                        "data": "{\n    \"existing\": {}\n}"
-                    }
                 ]
             );
         });
@@ -418,12 +458,12 @@ describe('TranslationStaticAnalyzer', () => {
                 {
                     "action": "read",
                     "filename": "./locales/existing.json",
-                    "data": "{\n    // NEW\n    // src/pages/Search/index.js:6\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // src/index.js:2\n    \"Application\": \"アプリケーション\",\n    // src/pages/About/index.js:6\n    // src/pages/Search/index.js:2\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                    "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"検索\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
                 },
                 {
                     "action": "write",
                     "filename": "./locales/existing.json",
-                    "data": "{\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // src/index.js:2\n    \"Application\": \"アプリケーション\",\n    // src/pages/About/index.js:6\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                    "data": "{\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        \"default\": \"検索\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
                 },
                 {
                     "action": "read",
@@ -432,28 +472,13 @@ describe('TranslationStaticAnalyzer', () => {
                 },
                 {
                     "action": "read",
-                    "filename": "src/pages/.locales/index.json",
-                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
-                },
-                {
-                    "action": "read",
                     "filename": "src/pages/About/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
                 },
                 {
                     "action": "read",
-                    "filename": "src/pages/About/.locales/index.json",
-                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
-                },
-                {
-                    "action": "read",
                     "filename": "src/application/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
-                },
-                {
-                    "action": "read",
-                    "filename": "src/application/.locales/index.json",
-                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
                 }
 			]);
         });
@@ -469,19 +494,37 @@ describe('TranslationStaticAnalyzer', () => {
 
             expect(fs.readFileSync('./locales/existing.json')).toEqual(
 `{
-    // NEW
-    // src/pages/Search/index.js:6
-    "%d result": {"one":"","other":""},
-    // NEW
-    // src/pages/About/index.js:2
-    "About": "",
-    // src/index.js:2
-    "Application": "アプリケーション",
-    // src/pages/About/index.js:6
-    // src/pages/Search/index.js:2
-    "Search": "検索",
-    // UNUSED
-    "test unused key": "test value"
+    "%d result": {
+        // NEW
+        // src/pages/Search/index.js:6
+        "default": {"one":"","other":""}
+    },
+    "%d view": {
+        // NEW
+        // src/pages/Search/index.js:6
+        "footer": {"one":"","other":""}
+    },
+    "About": {
+        // NEW
+        // src/pages/About/index.js:2
+        "default": ""
+    },
+    "Application": {
+        // src/index.js:2
+        "default": "アプリケーション"
+    },
+    "Search": {
+        // src/pages/About/index.js:6
+        // src/pages/Search/index.js:2
+        "default": "検索",
+        // NEW
+        // src/pages/Search/index.js:6
+        "menuitem": ""
+    },
+    "test unused key": {
+        // UNUSED
+        "default": "test value"
+    }
 }`
             );
 
@@ -494,30 +537,36 @@ describe('TranslationStaticAnalyzer', () => {
 
             expect(fs.readFileSync('./locales/existing.json')).toEqual(
 `{
-    // NEW
-    // src/pages/About/index.js:2
-    "About": "",
-    // src/index.js:2
-    "Application": "アプリケーション",
-    // src/pages/About/index.js:6
-    "Search": "検索",
-    // UNUSED
-    "test unused key": "test value"
+    "About": {
+        // NEW
+        // src/pages/About/index.js:2
+        "default": ""
+    },
+    "Application": {
+        // src/index.js:2
+        "default": "アプリケーション"
+    },
+    "Search": {
+        // src/pages/About/index.js:6
+        "default": "検索"
+    },
+    "test unused key": {
+        // UNUSED
+        "default": "test value"
+    }
 }`
             );
 
-            /*
-
-			expect(fs.actions).toEqual([
+            expect(fs.actions).toEqual([
                 {
                     "action": "read",
                     "filename": "./locales/existing.json",
-                    "data": "{\n    // NEW\n    // \n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                    "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"検索\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
                 },
                 {
                     "action": "write",
                     "filename": "./locales/existing.json",
-                    "data": "{\n    // NEW\n    // \n    \"About\": \"\",\n    // \n    \"Application\": \"アプリケーション\",\n    // \n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                    "data": "{\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        \"default\": \"検索\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
                 },
                 {
                     "action": "read",
@@ -533,9 +582,13 @@ describe('TranslationStaticAnalyzer', () => {
                     "action": "read",
                     "filename": "src/application/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
+                },
+                {
+                    "action": "read",
+                    "filename": "./locales/existing.json",
+                    "data": "{\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        \"default\": \"検索\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
                 }
-			]);
-            */
+            ]);
         });
 
         it('removes unreadable source file', () => {
@@ -566,26 +619,21 @@ describe('TranslationStaticAnalyzer', () => {
 
             fs.readFileSync = originalReadFileSync;
 
-			expect(fs.actions).toEqual([
+            expect(fs.actions).toEqual([
                 {
                     "action": "read",
                     "filename": "./locales/existing.json",
-                    "data": "{\n    // NEW\n    // src/pages/Search/index.js:6\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // src/index.js:2\n    \"Application\": \"アプリケーション\",\n    // src/pages/About/index.js:6\n    // src/pages/Search/index.js:2\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                    "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"検索\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
                 },
                 {
                     "action": "write",
                     "filename": "./locales/existing.json",
-                    "data": "{\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // src/index.js:2\n    \"Application\": \"アプリケーション\",\n    // src/pages/About/index.js:6\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                    "data": "{\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        \"default\": \"検索\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
                 },
                 {
                     "action": "read",
                     "filename": "src/pages/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
-                },
-                {
-                    "action": "read",
-                    "filename": "src/pages/.locales/index.json",
-                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
                 },
                 {
                     "action": "read",
@@ -596,11 +644,6 @@ describe('TranslationStaticAnalyzer', () => {
                     "action": "write",
                     "filename": "src/pages/Search/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
-                },
-                {
-                    "action": "read",
-                    "filename": "src/pages/Search/.locales/index.json",
-                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
                 },
                 {
                     "action": "write",
@@ -613,7 +656,7 @@ describe('TranslationStaticAnalyzer', () => {
                     "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
                 },
                 {
-                    "action": "read",
+                    "action": "write",
                     "filename": "src/pages/About/.locales/index.json",
                     "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
                 },
@@ -623,7 +666,7 @@ describe('TranslationStaticAnalyzer', () => {
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
                 },
                 {
-                    "action": "read",
+                    "action": "write",
                     "filename": "src/application/.locales/index.json",
                     "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
                 }
@@ -655,12 +698,12 @@ describe('TranslationStaticAnalyzer', () => {
                 {
                     "action": "read",
                     "filename": "./locales/existing.json",
-                    "data": "{\n    // NEW\n    // src/pages/Search/index.js:6\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // src/index.js:2\n    \"Application\": \"アプリケーション\",\n    // src/pages/About/index.js:6\n    // src/pages/Search/index.js:2\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                    "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"検索\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
                 },
                 {
                     "action": "write",
                     "filename": "./locales/existing.json",
-                    "data": "{\n    // NEW\n    // src/pages/Search/index.js:6\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // NEW\n    // src/pages/Added/index.js:0\n    \"Added\": \"\",\n    // src/index.js:2\n    \"Application\": \"アプリケーション\",\n    // src/pages/About/index.js:6\n    // src/pages/Search/index.js:2\n    \"Search\": \"検索\",\n    // UNUSED\n    \"test unused key\": \"test value\"\n}"
+                    "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Added\": {\n        // NEW\n        // src/pages/Added/index.js:0\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // src/index.js:2\n        \"default\": \"アプリケーション\"\n    },\n    \"Search\": {\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"検索\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    },\n    \"test unused key\": {\n        // UNUSED\n        \"default\": \"test value\"\n    }\n}"
                 },
                 {
                     "action": "read",
@@ -669,28 +712,13 @@ describe('TranslationStaticAnalyzer', () => {
                 },
                 {
                     "action": "read",
-                    "filename": "src/pages/.locales/index.json",
-                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
-                },
-                {
-                    "action": "read",
                     "filename": "src/pages/About/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\",\n    \"Search\": \"検索\"\n}"
                 },
                 {
                     "action": "read",
-                    "filename": "src/pages/About/.locales/index.json",
-                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\",\n        \"Search\": \"検索\"\n    }\n}"
-                },
-                {
-                    "action": "read",
                     "filename": "src/application/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
-                },
-                {
-                    "action": "read",
-                    "filename": "src/application/.locales/index.json",
-                    "data": "{\n    \"existing\": {\n        \"Application\": \"アプリケーション\"\n    }\n}"
                 },
                 {
                     "action": "read",
@@ -701,11 +729,6 @@ describe('TranslationStaticAnalyzer', () => {
                     "action": "write",
                     "filename": "src/pages/Added/.locales/existing.json",
                     "data": "{\n    \"Application\": \"アプリケーション\"\n}"
-                },
-                {
-                    "action": "read",
-                    "filename": "src/pages/Added/.locales/index.json",
-                    "data": null
                 },
                 {
                     "action": "write",
@@ -816,7 +839,7 @@ describe('TranslationStaticAnalyzer', () => {
             target: 'test directory targets'
         });
 
-        fs.readFileSync.mockImplementation((filename) => {
+        fs.readFileSync = jest.fn().mockImplementation((filename) => {
             if (filename.endsWith('.json')) {
                 const e = new Error("MockError: readFileSync issue");
                 e.code = 'TEST ERROR';
@@ -842,7 +865,7 @@ describe('TranslationStaticAnalyzer', () => {
             {
                 "action": "read",
                 "filename": "src/pages/Search/index.js",
-                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';\n\n    }\n};"
+                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} {{__p('menuitem', 'Search')}} <div>{{__n('%d result', '%d results', 2)}}</div> {{__np('footer', '%d view', '%d views', 23)}}';\n    }\n};"
             },
             {
                 "action": "read",
@@ -867,7 +890,7 @@ describe('TranslationStaticAnalyzer', () => {
             {
                 "action": "write",
                 "filename": "./locales/new.json",
-                "data": "{\n    // NEW\n    // src/pages/Search/index.js:6\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // NEW\n    // src/index.js:2\n    \"Application\": \"\",\n    // NEW\n    // src/pages/About/index.js:6\n    // src/pages/Search/index.js:2\n    \"Search\": \"\"\n}"
+                "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // NEW\n        // src/index.js:2\n        \"default\": \"\"\n    },\n    \"Search\": {\n        // NEW\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    }\n}"
             },
             {
                 "action": "read",
@@ -875,39 +898,9 @@ describe('TranslationStaticAnalyzer', () => {
                 "data": null
             },
             {
-                "action": "write",
-                "filename": "src/pages/.locales/new.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/pages/.locales/index.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/.locales/index.json",
-                "data": "{\n    \"new\": {}\n}"
-            },
-            {
                 "action": "read",
                 "filename": "src/pages/Search/.locales/new.json",
                 "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/Search/.locales/new.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/pages/Search/.locales/index.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/Search/.locales/index.json",
-                "data": "{\n    \"new\": {}\n}"
             },
             {
                 "action": "read",
@@ -915,39 +908,9 @@ describe('TranslationStaticAnalyzer', () => {
                 "data": null
             },
             {
-                "action": "write",
-                "filename": "src/pages/About/.locales/new.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/pages/About/.locales/index.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/About/.locales/index.json",
-                "data": "{\n    \"new\": {}\n}"
-            },
-            {
                 "action": "read",
                 "filename": "src/application/.locales/new.json",
                 "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/application/.locales/new.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/application/.locales/index.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/application/.locales/index.json",
-                "data": "{\n    \"new\": {}\n}"
             }
         ]);
     });
@@ -969,7 +932,7 @@ describe('TranslationStaticAnalyzer', () => {
             {
                 "action": "read",
                 "filename": "src/pages/Search/index.js",
-                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';\n\n    }\n};"
+                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} {{__p('menuitem', 'Search')}} <div>{{__n('%d result', '%d results', 2)}}</div> {{__np('footer', '%d view', '%d views', 23)}}';\n    }\n};"
             },
             {
                 "action": "read",
@@ -994,7 +957,7 @@ describe('TranslationStaticAnalyzer', () => {
             {
                 "action": "write",
                 "filename": "./locales/new.json",
-                "data": "{\n    // NEW\n    // src/pages/Search/index.js:6\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // NEW\n    // src/index.js:2\n    \"Application\": \"\",\n    // NEW\n    // src/pages/About/index.js:6\n    // src/pages/Search/index.js:2\n    \"Search\": \"\"\n}"
+                "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // NEW\n        // src/index.js:2\n        \"default\": \"\"\n    },\n    \"Search\": {\n        // NEW\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    }\n}"
             },
             {
                 "action": "read",
@@ -1002,39 +965,9 @@ describe('TranslationStaticAnalyzer', () => {
                 "data": null
             },
             {
-                "action": "write",
-                "filename": "src/pages/.locales/new.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/pages/.locales/index.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/.locales/index.json",
-                "data": "{\n    \"new\": {}\n}"
-            },
-            {
                 "action": "read",
                 "filename": "src/pages/Search/.locales/new.json",
                 "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/Search/.locales/new.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/pages/Search/.locales/index.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/Search/.locales/index.json",
-                "data": "{\n    \"new\": {}\n}"
             },
             {
                 "action": "read",
@@ -1042,39 +975,9 @@ describe('TranslationStaticAnalyzer', () => {
                 "data": null
             },
             {
-                "action": "write",
-                "filename": "src/pages/About/.locales/new.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/pages/About/.locales/index.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/About/.locales/index.json",
-                "data": "{\n    \"new\": {}\n}"
-            },
-            {
                 "action": "read",
                 "filename": "src/application/.locales/new.json",
                 "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/application/.locales/new.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/application/.locales/index.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/application/.locales/index.json",
-                "data": "{\n    \"new\": {}\n}"
             }
         ]);
     });
@@ -1116,7 +1019,7 @@ describe('TranslationStaticAnalyzer', () => {
             {
                 "action": "read",
                 "filename": "src/pages/Search/index.js",
-                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} <div>{{__n('%d result', '%d results', 2)}}</div>';\n\n    }\n};"
+                "data": "export default class SearchPage extends Component {\n     static get title() {\n         return __('Search');\n     }\n\n    static get template() {\n         return '{{__('invalid''string')}} {{__p('menuitem', 'Search')}} <div>{{__n('%d result', '%d results', 2)}}</div> {{__np('footer', '%d view', '%d views', 23)}}';\n    }\n};"
             },
             {
                 "action": "read",
@@ -1141,27 +1044,12 @@ describe('TranslationStaticAnalyzer', () => {
             {
                 "action": "write",
                 "filename": "testtemplatespath/locales/existing.json",
-                "data": "{\n    // NEW\n    // src/pages/Search/index.js:6\n    \"%d result\": {\"one\":\"\",\"other\":\"\"},\n    // NEW\n    // src/pages/About/index.js:2\n    \"About\": \"\",\n    // NEW\n    // src/index.js:2\n    \"Application\": \"\",\n    // NEW\n    // src/pages/About/index.js:6\n    // src/pages/Search/index.js:2\n    \"Search\": \"\"\n}"
+                "data": "{\n    \"%d result\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"default\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"%d view\": {\n        // NEW\n        // src/pages/Search/index.js:6\n        \"footer\": {\"one\":\"\",\"other\":\"\"}\n    },\n    \"About\": {\n        // NEW\n        // src/pages/About/index.js:2\n        \"default\": \"\"\n    },\n    \"Application\": {\n        // NEW\n        // src/index.js:2\n        \"default\": \"\"\n    },\n    \"Search\": {\n        // NEW\n        // src/pages/About/index.js:6\n        // src/pages/Search/index.js:2\n        \"default\": \"\",\n        // NEW\n        // src/pages/Search/index.js:6\n        \"menuitem\": \"\"\n    }\n}"
             },
             {
                 "action": "read",
                 "filename": "src/pages/.locales/existing.json",
                 "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/.locales/existing.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/pages/.locales/index.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/pages/.locales/index.json",
-                "data": "{\n    \"existing\": {}\n}"
             },
             {
                 "action": "read",
@@ -1174,11 +1062,6 @@ describe('TranslationStaticAnalyzer', () => {
                 "data": "{}"
             },
             {
-                "action": "read",
-                "filename": "src/pages/Search/.locales/index.json",
-                "data": null
-            },
-            {
                 "action": "write",
                 "filename": "src/pages/Search/.locales/index.json",
                 "data": "{\n    \"existing\": {}\n}"
@@ -1189,11 +1072,6 @@ describe('TranslationStaticAnalyzer', () => {
                 "data": "{}"
             },
             {
-                "action": "read",
-                "filename": "src/pages/About/.locales/index.json",
-                "data": null
-            },
-            {
                 "action": "write",
                 "filename": "src/pages/About/.locales/index.json",
                 "data": "{\n    \"existing\": {}\n}"
@@ -1201,16 +1079,6 @@ describe('TranslationStaticAnalyzer', () => {
             {
                 "action": "read",
                 "filename": "src/application/.locales/existing.json",
-                "data": null
-            },
-            {
-                "action": "write",
-                "filename": "src/application/.locales/existing.json",
-                "data": "{}"
-            },
-            {
-                "action": "read",
-                "filename": "src/application/.locales/index.json",
                 "data": null
             },
             {
@@ -1218,6 +1086,7 @@ describe('TranslationStaticAnalyzer', () => {
                 "filename": "src/application/.locales/index.json",
                 "data": "{\n    \"existing\": {}\n}"
             }
+
 		]);
 	});
 });

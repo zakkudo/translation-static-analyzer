@@ -50,7 +50,11 @@ module.exports = function readString(text) {
             const {key, fn} = state.localization;
             const {index, lineNumber} = state;
 
-            localization[key] = {fn, lineNumber, index};
+            if (!localization[key]) {
+                localization[key] = [{fn, lineNumber, index}];
+            } else {
+                localization[key].push({fn, lineNumber, index});
+            }
         }
 
         previousIndex = state.index;

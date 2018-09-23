@@ -11,11 +11,13 @@ A library for scanning javscript files to build translation mappings in json aut
 ## Why use this?
 
 - You no longer have to manage hierarchies of translations
-- Templates are automatically generated for the translators
-- The translations are noted if they are new, unused and what files
-- It allows splitting the translations easily for dynamic imports to allow sliced loading
-- Any string wrapped in `__()` or `__n()`, will be picked up as a
+- Designed for architectures leveraging dynamic imports, allowing splitting of the translations based off of file structure
+- Templates are automatically generated for the translators where they only need to fill in the blanks
+- The translations are annoted if they are new or unused as well as the file names and line numbers of usages
+- Easy auditing for missing or non-updated translation strings with never running your application or enlisting QA
+- Any string wrapped in `__()` or `__n()` or `__p()` or `__np()`, will be picked up as a
   translatable making usage extremely easy for developers
+- Works similarly to the venerable [gettext](https://en.wikipedia.org/wiki/Gettext).  Any translation strategies that work for that library work for this library.
 
 ## What does it do?
 
@@ -36,7 +38,7 @@ yarn add @zakkudo/translation-static-analyzer
 ```
 
 ## Setup
-1. Wrap strings you want to be translated in `__('text')` or `__n('singlular', 'plural', number)` using a library like `@zakkudo/translator`
+1. Wrap strings you want to be translated in `__('text')` or `__n('singlular', 'plural', number)` or `__p('context', 'text')` or `__np('context', 'singular', 'plural', number)` using a library like `@zakkudo/translator`
 2. Initialize the analyzer in your build scripts similar to below.
 ``` javascript
 const TranslationStaticAnalyzer = require('@zakkudo/translation-static-analyzer');
@@ -84,21 +86,35 @@ File Structure
 Where `locales/fr.json` will look like this for use by your translators:
 ``` json5
 {
-    // NEW
-    // src/pages/AboutPage/index.js:14
-    "About": "",
-    // UNUSED
-    "Search Page": "French translation",
-    // src/pages/AboutPage/index.js:40
-    "There is one user": {"one":"French translation", "other":"French translation"},
-    // src/pages/AboutPage/index.js:38
-    "Welcome to the about page!": "French translation"
+    "About": {
+        // NEW
+        // src/pages/AboutPage/index.js:14
+        "default": ""
+    },
+    "Search": {
+        // UNUSED
+        "default": "French translation",
+        // UNUSED
+        "menuitem": "French translation"
+    },
+    "There is one user": {
+        // src/pages/AboutPage/index.js:40
+        "default": {"one":"French translation", "other":"French translation"},
+    },
+    "Welcome to the about page!": {
+        // src/pages/AboutPage/index.js:38
+        "default": "French translation"
+    }
 }
 ```
 
 And the optimized `src/.locales/fr.json` will look like this for use by your developers:
 ``` json
 {
+    "Search": {
+        "default": "French translation",
+        "menuitem": "French translation"
+    },
     "There is one user": {"one":"French translation", "other":"French translation"},
     "Welcome to the about page!": "French translation"
 }
