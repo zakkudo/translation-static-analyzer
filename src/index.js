@@ -54,14 +54,24 @@ function __p(context, key) {
  * @private
  */
 function __n(singular) {
-    return [toKeyWithContext(singular), {one: "", other: ""}];
+    return [toKeyWithContext(singular), {
+        // Singular form placeholder
+        "1": "",
+        // Plural form placeholder
+        "2": ""
+    }];
 }
 
 /**
  * @private
  */
 function __np(context, singular) {
-    return [toKeyWithContext(singular, context), {one: "", other: ""}];
+    return [toKeyWithContext(singular, context), {
+        // Singular form placeholder
+        "1": "",
+        // Plural form placeholder
+        "2": ""
+    }];
 }
 
 /**

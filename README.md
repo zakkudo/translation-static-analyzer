@@ -99,7 +99,7 @@ Where `locales/fr.json` will look like this for use by your translators:
     },
     "There is one user": {
         // src/pages/AboutPage/index.js:40
-        "default": {"one":"French translation", "other":"French translation"},
+        "default": {"1":"French translation", "2":"French translation"},
     },
     "Welcome to the about page!": {
         // src/pages/AboutPage/index.js:38
@@ -115,7 +115,7 @@ And the optimized `src/.locales/fr.json` will look like this for use by your dev
         "default": "French translation",
         "menuitem": "French translation"
     },
-    "There is one user": {"one":"French translation", "other":"French translation"},
+    "There is one user": {"1":"French translation", "2":"French translation"},
     "Welcome to the about page!": "French translation"
 }
 ```
