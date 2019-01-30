@@ -10,8 +10,10 @@ A library for scanning javscript files to build translation mappings in json aut
 
 ## Why use this?
 
+- Automated code splittiing
 - You no longer have to manage hierarchies of translations
-- Designed for architectures leveraging dynamic imports, allowing splitting of the translations based off of file structure
+- Includes a handy commandline program called `update-translations`
+- Designed for architectures leveraging dynamic imports
 - Templates are automatically generated for the translators where they only need to fill in the blanks
 - The translations are annoted if they are new or unused as well as the file names and line numbers of usages
 - Easy auditing for missing or non-updated translation strings with never running your application or enlisting QA
@@ -39,7 +41,26 @@ yarn add @zakkudo/translation-static-analyzer
 
 ## Setup
 1. Wrap strings you want to be translated in `__('text')` or `__n('singlular', 'plural', number)` or `__p('context', 'text')` or `__np('context', 'singular', 'plural', number)` using a library like `@zakkudo/translator`
-2. Initialize the analyzer in your build scripts similar to below.
+2. Initialize the analyzer in your build scripts similar to below:
+``` console
+$ npm install -g @zakkudo/translation-static-analyzer
+$ update-translations --help
+usage: update-translations [--help] [--version] [--watch] [--templates=path] [--target=glob] [--debug] [--locales=es,fr] ...source-files-glob
+
+A console application for updating gettext style translations in a javscript application.
+
+	-h/--help            Show this help information.
+	-V/--version         Show the program version.
+	-w/--watch           Update the translations as the files change. ctrl-c to quit.
+	--templates=path     The output target of the developer centric translations. A 'locale' directory will be created in this localition.
+	--target=glob        The output target of the developer centric translations. A '.locale' directory will be created in this location.
+	--debug              Show debugging messages.
+	-l/--locales=es,fr   The locales to generate translation templates for, comma separated.
+$ update-translations --target src --locales fr --templates . --debug 'src/**/*.js'
+```
+
+or you can use the api directly, which is used to make `@zakkudo/translate-webpack-plugin` and other handy wrappers:
+
 ``` javascript
 const TranslationStaticAnalyzer = require('@zakkudo/translation-static-analyzer');
 const analyzer = new TransalationStaticAnalyzer({
@@ -137,14 +158,37 @@ document.body.innerHTML = __n('There is one user', 'There are %d users', 2);
 
 ## Examples
 
+### Use the command-line program, using the git repository of this project
+```console
+# Install the command globally
+$ npm install -g @zakkudo/translation-static-analyzer
+# Copy the project
+$ git clone https://github.com/zakkudo/translation-static-analyzer.git
+$ cd translation-static-analyzer/example/src
+# Check out the help for the fun of it
+$ update-translations --help
+usage: update-translations [--help] [--version] [--watch] [--templates=path] [--target=glob] [--debug] [--locales=es,fr] ...source-files-glob
+
+A console application for updating gettext style translations in a javscript application.
+
+	-h/--help            Show this help information.
+	-V/--version         Show the program version.
+	-w/--watch           Update the translations as the files change. ctrl-c to quit.
+	--templates=path     The output target of the developer centric translations. A 'locale' directory will be created in this localition.
+	--target=glob        The output target of the developer centric translations. A '.locale' directory will be created in this location.
+	--debug              Show debugging messages.
+	-l/--locales=es,fr   The locales to generate translation templates for, comma separated.
+# Generate some translations
+$ update-translations --locales=es,fr
+# View what was created
+$ ls .locales # For the developers
+$ ls ../locales # For the translators
+```
+
 ### Configure the analyzer to build a single `.locales` directory
-``` javascript
-const TranslationStaticAnalyzer = require('@zakkudo/translation-static-analyzer');
-const analyzer = new TransalationStaticAnalyzer({
-    files: 'src/**/*.js',
-    locales: ['es', 'fr'],
-    target: 'src'
-});
+``` console
+$ npm install -g @zakkudo/translation-static-analyzer
+$ update-translations --templates . --target src --locales es,fr 'src/**/*.js'
 ```
 
 ```
@@ -165,13 +209,9 @@ File Structure
 ```
 
 ### Configure the analyzer for a split `.locales` directory
-``` javascript
-const TranslationStaticAnalyzer = require('@zakkudo/translation-static-analyzer');
-const analyzer = new TransalationStaticAnalyzer({
-    files: 'src/**/*.js',
-    locales: ['es', 'fr'],
-    target: 'src/pages/*'
-});
+``` console
+$ npm install -g @zakkudo/translation-static-analyzer
+$ update-translations --templates . --target 'src/pages/*' --locales es,fr 'src/**/*.js'
 ```
 
 ```

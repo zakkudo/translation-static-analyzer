@@ -1,9 +1,9 @@
 const escapeCharacters = new Set([
-    `'`,
-    '"',
-    "`",
-    "/*",
-    "//"
+  `'`,
+  '"',
+  "`",
+  "/*",
+  "//"
 ]);
 
 /**
@@ -14,5 +14,5 @@ const escapeCharacters = new Set([
  * @private
  */
 module.exports = function isEscapeCharacter(character) {
-    return escapeCharacters.has(character);
+  return escapeCharacters.has(character);
 }

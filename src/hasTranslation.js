@@ -2,20 +2,20 @@
  * @private
  */
 function singularHasTranslation(data) {
-    return Boolean(data.length);
+  return Boolean(data.length);
 }
 
 /**
  * @private
  */
 function pluralHasTranslation(data) {
-    return Object.values(data || {}).some((v) => {
-        if (Object(v) === v) {
-            return pluralHasTranslation(v);
-        }
+  return Object.values(data || {}).some((v) => {
+    if (Object(v) === v) {
+      return pluralHasTranslation(v);
+    }
 
-        return singularHasTranslation(v);
-    });
+    return singularHasTranslation(v);
+  });
 }
 
 /**
@@ -26,9 +26,9 @@ function pluralHasTranslation(data) {
  * @private
  */
 module.exports = function hasTranslation(data) {
-    if (typeof data === 'string') {
-        return singularHasTranslation(data);
-    }
+  if (typeof data === 'string') {
+    return singularHasTranslation(data);
+  }
 
-    return pluralHasTranslation(data);
+  return pluralHasTranslation(data);
 }

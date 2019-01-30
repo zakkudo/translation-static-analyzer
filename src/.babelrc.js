@@ -1,3 +1,5 @@
+const packageConfig = require('../package.json');
+
 module.exports = {
     "presets": [
         [
@@ -13,7 +15,8 @@ module.exports = {
     ],
     "plugins": [
         ["@babel/transform-runtime", {"corejs": 2}],
-        "transform-undefined-to-void"
+        "transform-undefined-to-void",
+        ["transform-define", {"__VERSION__": packageConfig.version}]
     ],
     minified: false, // When enabled, makes debuggers confused even with source maps
     comments: false
