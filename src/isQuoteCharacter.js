@@ -1,7 +1,7 @@
 const quoteCharacters = new Set([
-    "'",
-    '"',
-    "`"
+  "'",
+  '"',
+  "`"
 ]);
 
 /**
@@ -11,5 +11,5 @@ const quoteCharacters = new Set([
  * @private
  */
 module.exports = function isQuoteCharacter(character) {
-    return quoteCharacters.has(character);
+  return quoteCharacters.has(character);
 }

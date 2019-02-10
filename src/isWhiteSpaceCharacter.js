@@ -1,6 +1,6 @@
 const whiteSpaceCharacters = new Set([
-    ' ',
-    '   ',
+  ' ',
+  '   ',
 ]);
 
 /**
@@ -11,5 +11,5 @@ const whiteSpaceCharacters = new Set([
  * @private
  */
 module.exports = function isWhiteSpaceCharacter(character) {
-    return whiteSpaceCharacters.has(character);
+  return whiteSpaceCharacters.has(character);
 }

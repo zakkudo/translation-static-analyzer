@@ -1,16 +1,16 @@
 const translationStartPatterns = [
-    '__(',
-    '__`',
-    `__n(`,
-    '__n`',
-    '__p(',
-    '__p`',
-    `__np(`,
-    '__np`',
+  '__(',
+  '__`',
+  `__n(`,
+  '__n`',
+  '__p(',
+  '__p`',
+  `__np(`,
+  '__np`',
 ];
 
 const length = translationStartPatterns
-    .reduce((accumulator, p) => Math.max(p.length, accumulator), 0);
+  .reduce((accumulator, p) => Math.max(p.length, accumulator), 0);
 
 /**
  * @param {String} text - A blob of text to act as a haystack
@@ -21,7 +21,7 @@ const length = translationStartPatterns
  * @private
  */
 module.exports = function isLocalizationStart(text, {index}) {
-    const testString = text.substring(index, index + length);
+  const testString = text.substring(index, index + length);
 
-    return translationStartPatterns.some((p) => testString.startsWith(p));
+  return translationStartPatterns.some((p) => testString.startsWith(p));
 }
