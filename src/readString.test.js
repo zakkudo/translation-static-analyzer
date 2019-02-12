@@ -3,119 +3,321 @@ const readString = require('./readString');
 describe('readString', () => {
   describe('singular', () => {
     it('create key and value when contains translation', () => {
-      expect(readString(`a __('b') c`)).toEqual({b: [
-        {fn: `__('b')`, lineNumber: 0, index: 9}],
-      });
+      expect(readString(`a __('b') c`)).toEqual([{
+        fn: `__("b")`,
+        index: 9,
+        key: 'b',
+        lineNumber: 0,
+        particular: false,
+        number: false,
+      }]);
+    });
+
+    it('key can include quotes', () => {
+      expect(readString(`a __("a's") c`)).toEqual([{
+        fn: `__("a's")`,
+        index: 11,
+        key: "a's",
+        lineNumber: 0,
+        particular: false,
+        number: false,
+      }]);
+    });
+
+    it('adds multi-line block comments when directly above', () => {
+      expect(readString(`/*test\ncomment*/\n__('b') c`)).toEqual([{
+        fn: `__("b")`,
+        index: 24,
+        key: 'b',
+        comments: 'test\ncomment',
+        lineNumber: 2,
+        particular: false,
+        number: false,
+      }]);
+    });
+
+    it('create key and value with outside line comments', () => {
+      expect(readString(`//test comments\n__('b') c`)).toEqual([{
+        comments: 'test comments',
+        fn: `__("b")`,
+        index: 23,
+        key: 'b',
+        lineNumber: 1,
+        particular: false,
+        number: false,
+      }]);
+    });
+
+    it('adds line comments when directly above', () => {
+      expect(readString(`//test comments\n__('b') c`)).toEqual([{
+        comments: 'test comments',
+        fn: `__("b")`,
+        index: 23,
+        key: 'b',
+        lineNumber: 1,
+        particular: false,
+        number: false,
+      }]);
+    });
+
+    it('doesn\'t add line comments when not directly above', () => {
+      expect(readString(`//test comments\n\n__('b') c`)).toEqual([{
+        fn: `__("b")`,
+        index: 24,
+        key: 'b',
+        lineNumber: 2,
+        particular: false,
+        number: false,
+      }]);
+    });
+
+    it('create key and value with inline comments', () => {
+      expect(readString(`a __(/*test comments*/'b') c`)).toEqual([{
+        comments: 'test comments',
+        fn: `__("b")`,
+        index: 26,
+        key: 'b',
+        lineNumber: 0,
+        particular: false,
+        number: false,
+      }]);
+    });
+
+    it('includes the comments when on the previous line', () => {
+      expect(readString(`/* comments */ a __('b') c`)).toEqual([{
+        fn: `__("b")`,
+        index: 24,
+        key: 'b',
+        lineNumber: 0,
+        particular: false,
+        number: false,
+      }]);
     });
 
     it('adds nothing when no translation', () => {
-      expect(readString(`a c`)).toEqual({});
+      expect(readString(`a c`)).toEqual([]);
     });
 
     it('create key and value when contains shorthand translation', () => {
-      expect(readString('a __`b` c')).toEqual({b: [
-        {fn: '__`b`', lineNumber: 0, index: 7 }],
-      });
+      expect(readString('a __`b` c')).toEqual([{
+        fn: '__("b")',
+        index: 7,
+        key: 'b',
+        lineNumber: 0,
+        particular: false,
+        number: false,
+      }]);
     });
 
     it('handles unclosed parenthesis gracefully', () => {
-      expect(readString('a __(`b` c')).toEqual({});
+      expect(readString('a __(`b` c')).toEqual([]);
     });
 
     it('handles two duplicate translations on same line gracefully', () => {
-      expect(readString('a __(`b`) __(`b`) c')).toEqual({b: [
-        {fn: '__(`b`)', lineNumber: 0, index: 9 },
-        {fn: '__(`b`)', lineNumber: 0, index: 17 },
-      ]});
+      expect(readString('a __(`b`) __(`b`) c')).toEqual([{
+        fn: '__("b")',
+        index: 9,
+        key: 'b',
+        lineNumber: 0,
+        particular: false,
+        number: false,
+      }, {
+        fn: '__("b")',
+        index: 17,
+        key: 'b',
+        lineNumber: 0,
+        particular: false,
+        number: false,
+      }]);
     });
 
     it('handles two duplicate translations on different line gracefully', () => {
-      expect(readString('a __(`b`)\n__(`b`) c')).toEqual({b: [
-        {fn: '__(`b`)', lineNumber: 0, index: 9 },
-        {fn: '__(`b`)', lineNumber: 1, index: 17 },
-      ]});
+      expect(readString('a __(`b`)\n__(`b`) c')).toEqual([{
+        fn: '__("b")',
+        index: 9,
+        key: 'b',
+        lineNumber: 0,
+        particular: false,
+        number: false,
+      }, {
+        fn: '__("b")',
+        index: 17,
+        key: 'b',
+        lineNumber: 1,
+        particular: false,
+        number: false,
+      }]);
     });
   });
 
   describe('singular with context', () => {
     it('create key and value when contains translation', () => {
-      expect(readString(`a __p('b', 'c') d`)).toEqual({c: [
-        {fn: `__p('b', 'c')`, lineNumber: 0, index: 15},
-      ]});
+      expect(readString(`a __p('b', 'c') d`)).toEqual([{
+        context: 'b',
+        fn: '__p("b","c")',
+        index: 15,
+        key: 'c',
+        lineNumber: 0,
+        particular: true,
+        number: false,
+      }]);
     });
 
     it('adds nothing when no translation', () => {
-      expect(readString(`a c`)).toEqual({});
+      expect(readString(`a c`)).toEqual([]);
     });
 
     it('handles two duplicate translations on same line gracefully', () => {
-      expect(readString('a __p(`b`, `c`) __p(`b`, `c`) c')).toEqual({c: [
-        {fn: '__p(`b`, `c`)', lineNumber: 0, index: 15 },
-        {fn: '__p(`b`, `c`)', lineNumber: 0, index: 29 },
-      ]});
+      expect(readString('a __p(`b`, `c`) __p(`b`, `c`) c')).toEqual([{
+        context: 'b',
+        fn: '__p("b","c")',
+        index: 15,
+        key: 'c',
+        lineNumber: 0,
+        particular: true,
+        number: false,
+      }, {
+        context: 'b',
+        fn: '__p("b","c")',
+        index: 29,
+        key: 'c',
+        lineNumber: 0,
+        particular: true,
+        number: false,
+      }]);
     });
 
     it('handles two duplicate translations on different line gracefully', () => {
-      expect(readString('a __p(`b`, `c`)\n__p(`b`, `c`) c')).toEqual({c: [
-        {fn: '__p(`b`, `c`)', lineNumber: 0, index: 15 },
-        {fn: '__p(`b`, `c`)', lineNumber: 1, index: 29 },
-      ]});
+      expect(readString('a __p(`b`, `c`)\n__p(`b`, `c`) c')).toEqual([{
+        context: 'b',
+        fn: '__p("b","c")',
+        index: 15,
+        key: 'c',
+        lineNumber: 0,
+        particular: true,
+        number: false,
+      }, {
+        context: 'b',
+        fn: '__p("b","c")',
+        index: 29,
+        key: 'c',
+        lineNumber: 1,
+        particular: true,
+        number: false,
+      }]);
     });
   });
 
-  describe('plural', () => {
-    it('create key and value when contains plural translation', () => {
-      expect(readString("a __n('%d cat', '%d cats', 1) c")).toEqual({
-        '%d cat': [
-          {fn: "__n('%d cat', '%d cats', 1)", lineNumber: 0, index: 29},
-        ]
-      });
+  describe('number', () => {
+    it('create key and value when contains number translation', () => {
+      expect(readString("a __n('%d cat', '%d cats', 1) c")).toEqual([{
+        fn: '__n("%d cat","%d cats")',
+        index: 29,
+        key: '%d cat',
+        lineNumber: 0,
+        particular: false,
+        number: true,
+        plural: '%d cats',
+      }]);
     });
 
     it('handles two duplicate translations on same line gracefully', () => {
-      expect(readString("a __n('%d cat', '%d cats', 1) __n('%d cat', '%d cats', 1) c")).toEqual({
-        '%d cat': [
-          {fn: "__n('%d cat', '%d cats', 1)", lineNumber: 0, index: 29 },
-          {fn: "__n('%d cat', '%d cats', 1)", lineNumber: 0, index: 57 },
-        ]
-      });
+      expect(readString("a __n('%d cat', '%d cats', 1) __n('%d cat', '%d cats', 1) c")).toEqual([{
+        fn: '__n("%d cat","%d cats")',
+        index: 29,
+        key: '%d cat',
+        lineNumber: 0,
+        particular: false,
+        number: true,
+        plural: "%d cats",
+      }, {
+        fn: '__n("%d cat","%d cats")',
+        index: 57,
+        key: '%d cat',
+        lineNumber: 0,
+        particular: false,
+        number: true,
+        plural: "%d cats",
+      }]);
     });
 
     it('handles two duplicate translations on different line gracefully', () => {
-      expect(readString("a __n('%d cat', '%d cats', 1)\n__n('%d cat', '%d cats', 1) c")).toEqual({
-        '%d cat': [
-          {fn: "__n('%d cat', '%d cats', 1)", lineNumber: 0, index: 29 },
-          {fn: "__n('%d cat', '%d cats', 1)", lineNumber: 1, index: 57 },
-        ]
-      });
+      expect(readString("a __n('%d cat', '%d cats', 1)\n__n('%d cat', '%d cats', 1) c")).toEqual([{
+        fn: '__n("%d cat","%d cats")',
+        index: 29,
+        key: '%d cat',
+        lineNumber: 0,
+        particular: false,
+        number: true,
+        plural: "%d cats",
+      }, {
+        fn: '__n("%d cat","%d cats")',
+        index: 57,
+        key: '%d cat',
+        lineNumber: 1,
+        particular: false,
+        number: true,
+        plural: "%d cats",
+      }]);
     });
   });
 
-  describe('plural with context', () => {
-    it('create key and value when contains plural translation', () => {
-      expect(readString("a __np('a', '%d cat', '%d cats', 1) c")).toEqual({
-        '%d cat': [
-          {fn: "__np('a', '%d cat', '%d cats', 1)", lineNumber: 0, index: 35},
-        ]
-      });
+  describe('number with context', () => {
+    it('create key and value when contains number translation', () => {
+      expect(readString("a __np('a', '%d cat', '%d cats', 1) c")).toEqual([{
+        context: 'a',
+        fn: '__np("a","%d cat","%d cats")',
+        index: 35,
+        key: '%d cat',
+        lineNumber: 0,
+        particular: true,
+        number: true,
+        plural: "%d cats",
+      }]);
     });
 
     it('handles two duplicate translations on same line gracefully', () => {
-      expect(readString("a __np('b', '%d cat', '%d cats', 1) __np('b', '%d cat', '%d cats', 1) c")).toEqual({
-        '%d cat': [
-          {fn: "__np('b', '%d cat', '%d cats', 1)", lineNumber: 0, index: 35 },
-          {fn: "__np('b', '%d cat', '%d cats', 1)", lineNumber: 0, index: 69 },
-        ]
-      });
+      expect(readString("a __np('b', '%d cat', '%d cats', 1) __np('b', '%d cat', '%d cats', 1) c")).toEqual([{
+        context: 'b',
+        fn: '__np("b","%d cat","%d cats")',
+        index: 35,
+        key: '%d cat',
+        lineNumber: 0,
+        particular: true,
+        number: true,
+        plural: "%d cats",
+      }, {
+        context: 'b',
+        fn: '__np("b","%d cat","%d cats")',
+        index: 69,
+        key: '%d cat',
+        lineNumber: 0,
+        particular: true,
+        number: true,
+        plural: "%d cats",
+      }]);
     });
 
     it('handles two duplicate translations on different line gracefully', () => {
-      expect(readString("a __np('b', '%d cat', '%d cats', 1)\n__np('b', '%d cat', '%d cats', 1) c")).toEqual({
-        '%d cat': [
-          {fn: "__np('b', '%d cat', '%d cats', 1)", lineNumber: 0, index: 35 },
-          {fn: "__np('b', '%d cat', '%d cats', 1)", lineNumber: 1, index: 69 },
-        ]
-      });
+      expect(readString("a __np('b', '%d cat', '%d cats', 1)\n__np('b', '%d cat', '%d cats', 1) c")).toEqual([{
+        context: 'b',
+        fn: '__np("b","%d cat","%d cats")',
+        index: 35,
+        key: '%d cat',
+        lineNumber: 0,
+        particular: true,
+        number: true,
+        plural: "%d cats",
+      }, {
+        context: 'b',
+        fn: '__np("b","%d cat","%d cats")',
+        index: 69,
+        key: '%d cat',
+        lineNumber: 1,
+        particular: true,
+        number: true,
+        plural: "%d cats",
+      }]);
     });
   });
 });

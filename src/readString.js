@@ -1,22 +1,23 @@
 const readCharacter = require('./readCharacter');
 
-function readCharacterWithErrorHandling(text, state) {
-  let currentState = Object.assign({}, state);
-  let nextState;
+function readCharacterWithErrorHandling(text, iterator) {
+  let currentIterator = Object.assign({}, iterator);
+  let nextIterator;
 
-  while (nextState === undefined) {
+  while (nextIterator === undefined && iterator.index < text.length) {
     try {
-      nextState = readCharacter(text, currentState);
+      nextIterator = readCharacter(text, currentIterator);
     } catch (e) {
-      if (currentState.stack.length) {
-        currentState.stack = currentState.stack.slice(1);
+
+      if (currentIterator.stack.length) {
+        currentIterator.stack = currentIterator.stack.slice(1);
       } else {
-        currentState.index += 1;
+        currentIterator.index += 1;
       }
     }
   }
 
-  return nextState;
+  return nextIterator || null;
 }
 
 /**
@@ -28,36 +29,46 @@ function readCharacterWithErrorHandling(text, state) {
  * @private
  */
 module.exports = function readString(text) {
-  const localization = {};
-  let state = {
+  const localization = [];
+  let iterator = {
     index: 0,
     stack: [],
     lineNumber: 0,
   };
   let previousIndex = 0;
+  let previousStackLength = 0;
+  let iteratorWithComment = {};
 
-  while ((state = readCharacterWithErrorHandling(text, state)) !== null) {
-    if (state.index === previousIndex) {
-      const serializedState = JSON.stringify(state, null, 4);
-      const slice = text.slice(state.index);
+  while ((iterator = readCharacterWithErrorHandling(text, iterator)) !== null) {
+    if (iterator.index === previousIndex && iterator.stack.length === previousStackLength) {
+      const serializedState = JSON.stringify(iterator, null, 4);
+      const slice = text.slice(iterator.index);
 
       throw new Error(
         `infinite loop detected\n\n${serializedState}\n\n Problem starts here -> ${slice}`
       );
     }
 
-    if (state.localization) {
-      const {key, fn} = state.localization;
-      const {index, lineNumber} = state;
-
-      if (!localization[key]) {
-        localization[key] = [{fn, lineNumber, index}];
-      } else {
-        localization[key].push({fn, lineNumber, index});
-      }
+    if (iterator.comments) {
+      iteratorWithComment = iterator;
     }
 
-    previousIndex = state.index;
+    if (iterator.localization) {
+      const { comments, ...leftover } = iterator.localization;
+      const {index, lineNumber} = iterator;
+      const newLocalization = Object.assign({}, leftover, {index, lineNumber});
+
+      if (comments) {
+        newLocalization.comments = comments;
+      } else if (iteratorWithComment.lineNumber + 1 === iterator.lineNumber) {
+        newLocalization.comments = iteratorWithComment.comments;
+      }
+
+      localization.push(newLocalization);
+    }
+
+    previousIndex = iterator.index;
+    previousStackLength = iterator.stack.length;
   }
 
   return localization;
