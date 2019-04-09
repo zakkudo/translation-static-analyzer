@@ -1,7 +1,6 @@
 jest.mock('os');
 
 const fs = jest.genMockFromModule('fs-extra');
-const originalFileSystem = require('./filesystem');
 let increment = 0;
 
 fs.actions = [];
@@ -9,7 +8,7 @@ fs.actions = [];
 let filesystem = {};
 
 fs.mockReset = () => {
-    filesystem = JSON.parse(JSON.stringify(originalFileSystem));
+    filesystem = fs.filesystem = {};
     increment = 0;
 
     fs.mkdtempSync.mockImplementation(() => {
@@ -20,7 +19,6 @@ fs.mockReset = () => {
         return filename;
     });
 
-    fs.ensureDirSync.mockImplementation(() => 0);
     fs.removeSync.mockImplementation(() => 0);
 
     fs.statSync.mockImplementation((filename) => {
@@ -40,6 +38,13 @@ fs.mockReset = () => {
         filesystem[filename] = data;
     });
 
+    fs.ensureDirSync.mockImplementation((filename) => {
+      if (!filesystem[filename]) {
+        fs.actions.push({action: 'write', filename});
+        filesystem[filename] = true;
+      }
+    });
+
     fs.readFileSync.mockImplementation((filename) => {
         fs.actions.push({action: 'read', filename, data: filesystem[filename] || null});
 
@@ -47,7 +52,7 @@ fs.mockReset = () => {
             return filesystem[filename];
         }
 
-        const e = new Error("MockError: Filename doesn't exist", filename);
+        const e = new Error("MockError: Filename '" + filename + "' doesn't exist", filename);
         e.code = 'ENOENT';
 
         throw e;

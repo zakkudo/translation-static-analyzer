@@ -2,75 +2,73 @@
  * @module @zakkudo/translation-static-analyzer
  */
 
-const JSON5 = require('json5');
-const safeEval = require('safe-eval');
-const equal = require('deep-equal');
 const fs = require('fs-extra');
 const glob = require('glob');
-const querystring = require('querystring');
 const path = require('path');
 const console = require('console');
+const parseHeader = require('./parseHeader');
 const hasTranslation = require('./hasTranslation');
 const readString = require('./readString');
 const isSubPath = require('./isSubPath');
+const TemplateDirectory = require('./TemplateDirectory');
+const TargetDirectory = require('./TargetDirectory');
+const Status = require('./Status');
+const toKey = require('./toKey');
 const name = 'translation-static-analyzer';
 
+const HEADER_KEY = 'default::';
+
+
 
 /**
+ * Combines context and key strings from two levels of objects
+ * into one with the key/context concatenated togetherLocale.
+ * Converts from:
+ * [{key, value, context}]
+ * to
+ * {key:context: value}
  * @private
  */
-function toKeyWithContext(key, context = 'default') {
-  return `${querystring.escape(key)}:${querystring.escape(context)}`;
+function toInternalFormat(localization) {
+  return localization.reduce((accumulator, l) => {
+    return Object.assign({}, accumulator, {
+      [toKey(l.context || 'default', l.key || '', l.plural || '')]: l
+    });
+  }, {});
 }
 
-/**
- * @private
- */
-function fromKeyWithContext(keyWithContext) {
-  const [key, value] = String(keyWithContext).split(':');
-
-  return [
-    querystring.unescape(key),
-    querystring.unescape(value),
-  ];
-}
+const statusOrder = {
+  [Status.NEW]: 1,
+  [Status.EXISTING]: 2,
+  [Status.UNUSED]:  3,
+};
 
 /**
+ * Converts from:
+ * {key:context: value}
+ * to
+ * [{key, value, context}]
  * @private
  */
-function __(key) {
-  return [toKeyWithContext(key), ""];
-}
+function toExternalFormat(localization) {
+  return Object.values(localization).sort((a, b) => {
+    // Move the translation heaader to the top
+    if (!a.key && b.key) {
+      return -1;
+    } else if (a.key && !b.key) {
+      return 1;
+    }
 
-/**
- * @private
- */
-function __p(context, key) {
-  return [toKeyWithContext(key, context), ""];
-}
+    if (a.status !== b.status) {
+      return (statusOrder[a.status]) - (statusOrder[b.status]);
+    }
 
-/**
- * @private
- */
-function __n(singular) {
-  return [toKeyWithContext(singular), {
-    // Singular form placeholder
-    "1": "",
-    // Plural form placeholder
-    "2": ""
-  }];
-}
+    if (a.key !== b.key) {
+      return a.key.localeCompare(b.key);
+    }
 
-/**
- * @private
- */
-function __np(context, singular) {
-  return [toKeyWithContext(singular, context), {
-    // Singular form placeholder
-    "1": "",
-    // Plural form placeholder
-    "2": ""
-  }];
+    return a.context.localeCompare(b.context);
+  });
 }
 
 /**
@@ -125,12 +123,12 @@ function calculateTargetFiles(targetDirectories, all) {
 function calculateFiles(requestFiles) {
   const options = this.options;
   const {files, target} = options;
-  const all = glob.sync(files).map((a) => path.resolve(a));
+  const all = files && glob.sync(files).map((a) => path.resolve(a)) || [];
   const hasModifiedFiles = Boolean(requestFiles.length);
   const allAsSet = new Set(all);
   const modified = hasModifiedFiles ? requestFiles.filter((f) => allAsSet.has(f)) : all;
   const removed = requestFiles.filter((f) => !allAsSet.has(f));
-  const targetDirectories = glob.sync(target).filter((t) => fs.statSync(t).isDirectory());
+  const targetDirectories = target && glob.sync(target).filter((t) => fs.statSync(t).isDirectory()) || [];
   const filesByTargetDirectory = calculateTargetFiles(targetDirectories, all);
 
   return {
@@ -144,211 +142,69 @@ function calculateFiles(requestFiles) {
   };
 }
 
-/**
- * @private
- */
-function serializeLocalizationWithMetaData(localizationWithMetadata) {
-  const templateDirectory = path.resolve(this.templateDirectory, '..');
-  const translations = Object.values(localizationWithMetadata).map((t) => {
-    const usages = t.usages.map((u) => {
-      return `${path.relative(templateDirectory, u.filename)}:${u.lineNumber}`;
-    }).sort();
+function generateTemplate(translation, nplural) {
+  const template = {}
 
-    return Object.assign({}, t, {usages});
-  }).sort((a, b) => {
-    return a.key.localeCompare(b.key) || a.context.localeCompare(b.context);
-  });
-  const indent = '    ';
-  const lines = ['{'];
-  let previousKey = translations[0].key;
-
-  /*
-   * EXAMPLE
-   * {
-   *     "English": {
-   *         // filename:number
-   *         "default": "French"
-   *     }
-   * }
-   *
-   */
-  return translations.reduce((lines, t, i) => {
-    const {key, context, data, usages, note} = t;
-    const newLines = [];
-
-    if (i === 0) {
-      newLines.push(`${indent}"${key}": {`);
-    }
-
-    if (previousKey !== key) {
-      newLines.push(`${indent}},`);
-      newLines.push(`${indent}"${key}": {`);
-    } else if (i > 0) {
-      const length = lines.length;
-      const last = length - 1;
-
-      lines[last] = lines[last] + ',';
-    }
-
-    if (note) {
-      newLines.push(`${indent}${indent}// ${note.toUpperCase()}`);
-    }
-
-    usages.forEach((u) => {
-      newLines.push(`${indent}${indent}// ${u}`);
-    });
-
-    newLines.push(`${indent}${indent}"${context}": ${JSON.stringify(data)}`);
-
-    previousKey = key;
-
-    return lines.concat(newLines);
-  }, lines).concat([`${indent}}`, '}']).join('\n');
-}
-
-/**
- * @private
- */
-function readJSON5FileWithFallback(filename, fallback = {}) {
-  let data = fallback;
-
-  try {
-    data = JSON5.parse(fs.readFileSync(filename));
-  } catch (e) {
-    if (e.code !== 'ENOENT') {
-      throw e;
-    }
+  if (translation.plural === undefined) {
+    return '';
   }
 
-  return data;
-}
-
-/**
- * Combines context and key strings from two levels of objects
- * into one with the key/context concatenated together.
- * @private
- */
-function flattenLocalization(localization) {
-  return Object.entries(localization).reduce((accumulator, [k, v]) => {
-    if (Object(v) === v) {
-      const translations = {};
-
-      Object.entries(v).forEach(([context, translation]) => {
-        translations[toKeyWithContext(k, context)] = translation;
-      });
-
-      return Object.assign(accumulator, translations);
-    }
-
-    return accumulator;
-  }, {});
-}
-
-/**
- * @private
- */
-function unflattenLocalization(localization) {
-  return Object.entries(localization).reduce((accumulator, [keyWithContext, translation]) => {
-    const [key, context] = fromKeyWithContext(keyWithContext);
-    const contexts = accumulator[key] || {};
-
-    return Object.assign({}, accumulator, {
-      [key]: Object.assign({}, contexts, {[context]: translation})
-    });
-  }, {});
-}
-
-/**
- * Compresses the translation for use by code, removing any extra context information
- * when not needed. (If there is only a default context, the context object is removed
- * and the translation is linked directly to the key for example.)
- * @private
- */
-function collapseLocalization(localization) {
-  return Object.entries(localization).reduce((accumulator, [key, contexts]) => {
-    const keys = new Set(Object.keys(contexts));
-
-    if (keys.size === 1 && keys.has('default')) {
-      return Object.assign({}, accumulator, {[key]: contexts.default});
-    }
-
-    return Object.assign({}, accumulator, {[key]: contexts});
-  }, {});
-}
-
-/**
- * @private
- */
-function readLocalization(locale) {
-  const directory = this.templateDirectory;
-  const filename = `${directory}/${locale}.json`;
-  const data = readJSON5FileWithFallback.call(this, filename);
-
-  return flattenLocalization(data);
-}
-
-/**
- * @private
- */
-function writeLocalizationWithMetadata(locale, localization) {
-  const directory = this.templateDirectory;
-  const filename = `${directory}/${locale}.json`;
-  const serialized = serializeLocalizationWithMetaData.call(this, localization);
-  const options = this.options;
-
-  if (options.debug) {
-    print('Writing localization for', filename, localization);
+  for (let i = 0; i < nplural; i += 1) {
+    template[String(i)] = '';
   }
 
-  fs.writeFileSync(filename, serialized);
+  return template;
+}
+
+function parseHeaderFromLocalization(localization) {
+  const header = (localization[HEADER_KEY] || {}).value || '';
+
+  return parseHeader(header);
 }
 
 /**
  * @private
  */
-function updateLocalization(localization) {
+function updateTemplate(localization) {
   const template = this.referenceTemplate;
   const usagesByKey = this.usagesByKey;
   const keys = [
     ...new Set(Object.keys(localization).concat(Object.keys(template)))
   ].sort();
   const fallbackFiles = new Set();
+  const header = parseHeaderFromLocalization(localization);
+  const nplurals = header.get('Plural-Forms').nplurals;
 
   return keys.reduce((accumulator, k) => {
-    const usages = [...(usagesByKey.get(k) || fallbackFiles)].sort();
+    const references = [...(usagesByKey.get(k) || fallbackFiles)].sort();
 
-    const localizationHasTranslation = hasTranslation(localization[k]);
+    const localizationHasTranslation = hasTranslation((localization[k] || {}).value);
     const templateHasProperty = template.hasOwnProperty(k);
-    const [key, context] = fromKeyWithContext(k);
+    const templateTranslation = template[k] || {};
 
     if (!templateHasProperty && localizationHasTranslation) {
       return Object.assign({}, accumulator, {
-        [k]: {
-          note: 'unused',
-          usages,
-          key,
-          context,
-          data: localization[k]
-        }
+        [k]: Object.assign({}, localization[k], {
+          status: k === HEADER_KEY ? Status.EXISTING : Status.UNUSED,
+          comments: templateTranslation.comments,
+          references,
+        })
       });
     } else if (templateHasProperty && !localizationHasTranslation) {
       return Object.assign({}, accumulator, {
-        [k]: {
-          note: 'new',
-          usages,
-          key,
-          context,
-          data: template[k]
-        }
+        [k]: Object.assign({}, templateTranslation, {
+          status: Status.NEW,
+          value: generateTemplate(templateTranslation, nplurals),
+          references,
+        })
       });
     } else if (templateHasProperty && localizationHasTranslation) {
       return Object.assign({}, accumulator, {
-        [k]: {
-          usages,
-          key,
-          context,
-          data: localization[k]
-        }
+        [k]: Object.assign({}, localization[k], {
+          status: Status.EXISTING,
+          comments: templateTranslation.comments,
+          references,
+        })
       });
     }
 
@@ -359,53 +215,25 @@ function updateLocalization(localization) {
 /**
  * @private
  */
-function stripMetadata(localizationWithMetadata) {
-  const pairs = Object.entries(localizationWithMetadata);
-
-  return pairs.reduce((accumulator, [keyWithContext, m]) => {
-    return Object.assign(accumulator, {
-      [keyWithContext]: m.data
-    });
-  }, {});
-}
-
-/**
- * @private
- */
-function generateLocaleFiles() {
+function generateTemplates() {
   const options = this.options;
-  const locales = options.locales;
-  const previousLocalizationWithMetadataByLanguage = this.localizationWithMetadataByLanguage;
+  const {locales, format} = options;
+  const templates = new TemplateDirectory(this.templateDirectory, format, this.cache);
   const localizationWithMetadataByLanguage = this.localizationWithMetadataByLanguage = new Map();
   const localizationByLanguage = this.localizationByLanguage = new Map();
   let changed = false;
 
-  fs.ensureDirSync(this.templateDirectory);
+  templates.ensureDirectory();
 
   locales.forEach((l) => {
-    const localizationWithMetadata = previousLocalizationWithMetadataByLanguage.get(l);
-    const localization = readLocalization.call(this, l);
-    const nextLocalizationWithMetadata = updateLocalization.call(this, localization);
-    const nextLocalization = stripMetadata(nextLocalizationWithMetadata)
-    const sourceCodeChangeUpdatedLocalization = !equal(
-      localizationWithMetadata,
-      nextLocalizationWithMetadata
-    );
-    const translationChangeUpdatedLocalization = !equal(
-      localization,
-      nextLocalization
-    );
+    const localization = toInternalFormat(templates.readLocalization(l));
+    const nextLocalization = updateTemplate.call(this, localization);
 
     localizationByLanguage.set(l, nextLocalization);
-    localizationWithMetadataByLanguage.set(l, nextLocalizationWithMetadata);
+    localizationWithMetadataByLanguage.set(l, nextLocalization);
 
-    if (sourceCodeChangeUpdatedLocalization || translationChangeUpdatedLocalization || this.firstRun) {
-      writeLocalizationWithMetadata.call(this, l, nextLocalizationWithMetadata);
-      changed = true;
-    }
+    changed = templates.writeLocalization(l, toExternalFormat(nextLocalization)) || changed;
   });
-
-  this.firstRun = false;
 
   return changed;
 }
@@ -427,33 +255,38 @@ function rebuildCache() {
     if (contents && typeof contents === 'string') {
       const metadata = readString(contents);
 
-      Object.values(metadata).forEach((translations) => {
-        translations.forEach((t) => {
-          try {
-            const {lineNumber, fn} = t;
-            const [
-              keyWithContext,
-              placeholderTranslation,
-            ] = safeEval(fn, {__, __n, __p, __np});
+      metadata.forEach((t) => {
+        try {
+          const {
+            key,
+            plural,
+            comments,
+            context = 'default',
+            lineNumber,
+          } = t;
+          const uniqueKey = toKey(context || 'default', key || '', plural || '');
 
-            referenceTemplate[keyWithContext] = placeholderTranslation;
+          referenceTemplate[uniqueKey] = JSON.parse(JSON.stringify({
+            key,
+            plural,
+            comments,
+            context
+          }));
 
-            addedKeysWithContext.add(keyWithContext);
+          addedKeysWithContext.add(uniqueKey);
 
-            if (!usagesByKey.has(keyWithContext)) {
-              usagesByKey.set(keyWithContext, new Set());
-            }
-
-            usagesByKey.get(keyWithContext).add({
-              filename: m,
-              lineNumber,
-            });
-          } catch(e) {
-            console.warn(e);
+          if (!usagesByKey.has(uniqueKey)) {
+            usagesByKey.set(uniqueKey, new Set());
           }
-        });
-      });
 
+          usagesByKey.get(uniqueKey).add({
+            filename: m,
+            lineNumber,
+          });
+        } catch(e) {
+          console.warn(e);
+        }
+      });
     }
 
     keysByFilename.set(m, addedKeysWithContext);
@@ -487,17 +320,9 @@ function loadSourceFiles() {
 /**
  * @private
  */
-function writeIndexTarget(targetDirectory, subLocalization) {
-  const directory = path.resolve(targetDirectory, '.locales');
-  const filename = path.resolve(directory, `index.json`);
-
-  fs.writeFileSync(filename, JSON.stringify(subLocalization, null, 4));
-}
-
-/**
- * @private
- */
-function buildTargetLocalization(localization, filenames) {
+function buildLocalizationForFilenames(l, filenames) {
+  const localizationByLanguage = this.localizationByLanguage;
+  const localization = localizationByLanguage.get(l);
   const subLocalization = {};
   const keysByFilename = this.keysByFilename;
 
@@ -505,13 +330,23 @@ function buildTargetLocalization(localization, filenames) {
     const keys = keysByFilename.get(f);
 
     keys.forEach((k) => {
-      if (localization.hasOwnProperty(k) && hasTranslation(localization[k])) {
+      if (localization.hasOwnProperty(k) && hasTranslation(localization[k].value)) {
         subLocalization[k] = localization[k]
       }
     });
   });
 
-  return collapseLocalization(unflattenLocalization(subLocalization));
+  if (localization[HEADER_KEY]) {
+    const header = parseHeader(localization[HEADER_KEY].value);
+    subLocalization[HEADER_KEY] = {
+      key: '',
+      value: {
+        'Plural-Forms': header.get('Plural-Forms'),
+      }
+    };
+  }
+
+  return toExternalFormat(subLocalization);
 }
 
 /**
@@ -522,38 +357,21 @@ function writeToTargets() {
   const locales = options.locales;
   const filesByTargetDirectory = this.files.target.filesByTargetDirectory;
   const targetDirectories = Object.keys(filesByTargetDirectory);
-  const localizationByLanguage = this.localizationByLanguage;
-  const aggregate = {};
-  let localizationChanged = false;
+  const localizations = {};
 
   targetDirectories.forEach((t) => {
-    // This is intentionally a hidden directory. It should generally not be included
-    // with git.
-    const directory = path.resolve(t, '.locales');
+    const target = new TargetDirectory(path.resolve(t, '.locales'), this.cache);
 
-    fs.ensureDirSync(directory)
+    target.ensureDirectory();
 
     locales.forEach((l) => {
       const filenames = filesByTargetDirectory[t];
-      const localization = localizationByLanguage.get(l);
-      const subLocalization = buildTargetLocalization.call(this, localization, filenames);
-      const filename = path.resolve(directory, `${l}.json`);
-      const previousSubLocalization = readJSON5FileWithFallback.call(this, filename, null);
+      const localization = localizations[l] = buildLocalizationForFilenames.call(this, l, filenames);
 
-      aggregate[l] = subLocalization;
-
-      if (!equal(subLocalization, previousSubLocalization)) {
-        if (options.debug) {
-          print('Writing final target to ', filename);
-        }
-        localizationChanged = true;
-        fs.writeFileSync(filename, JSON.stringify(subLocalization, null, 4));
-      }
+      target.writeLocalization(l, localization);
     });
 
-    if (localizationChanged) {
-      writeIndexTarget(t, aggregate);
-    }
+    target.writeIndex(localizations);
   });
 }
 
@@ -567,6 +385,7 @@ class TranslationStaticAnalyzer {
    * @param {String} options.files - A
    * [glob pattern]{@link https://www.npmjs.com/package/glob} of the files to pull translations from
    * @param {Boolean} [options.debug = false] - Show debugging information in the console
+   * @param {String} [options.format = 'po'] - The format for the tempalte files.  One of [po, json, json5]
    * @param {Array<String>} [options.locales = []] - The locales to generate (eg fr, ja_JP, en)
    * @param {String} [options.templates] - The location to store
    * the translator translatable templates for each language. Defaults to
@@ -575,6 +394,7 @@ class TranslationStaticAnalyzer {
    * multiple directories for modularity. If there are no targets, no `.locales` directory will be generated anywhere.
    */
   constructor(options) {
+    this.cache = {};
     this.options = options || {};
     this.sourceByFilename = new Map();
     this.keysByFilename = new Map();
@@ -646,8 +466,7 @@ class TranslationStaticAnalyzer {
    */
   write() {
     const referenceTemplate = this.referenceTemplate;
-
-    if (referenceTemplate && generateLocaleFiles.call(this)) {
+    if (referenceTemplate && generateTemplates.call(this)) {
       writeToTargets.call(this);
     }
 

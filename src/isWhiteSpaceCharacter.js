@@ -1,7 +1,4 @@
-const whiteSpaceCharacters = new Set([
-  ' ',
-  '   ',
-]);
+const pattern = new RegExp(/^\s$/);
 
 /**
  * Checks for coding whitespace characters
@@ -11,5 +8,5 @@ const whiteSpaceCharacters = new Set([
  * @private
  */
 module.exports = function isWhiteSpaceCharacter(character) {
-  return whiteSpaceCharacters.has(character);
+  return pattern.test(character);
 }

@@ -1,4 +1,5 @@
 const isEscapeCharacter = require('./isEscapeCharacter');
+const isCommentCharacter = require('./isCommentCharacter');
 const isLocalizationFunctionStart = require('./isLocalizationFunctionStart');
 const isQuoteCharacter = require('./isQuoteCharacter');
 const startsWith = require('./startsWith');
@@ -27,13 +28,13 @@ function pop(stack) {
  * readCharacter to read the next state
  * @private
  */
-function readCharacter(text, {index, stack, lineNumber}) {
-  const character = text.charAt(index);
+function readCharacter(text, iterator = {index: 0, stack: [], lineNumber: 0}) {
+  let {index, stack, lineNumber, comments} = iterator;
+  let character = text.charAt(index);
   let head = stack[0];
   const escaped = isEscapeCharacter(head);
   let localization;
   let testString;
-
 
   if (character === '') {
     while (head === '//') {
@@ -55,6 +56,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
       if (!escaped) {
         if (isLocalizationFunctionStart(text, {index})) {
           ({
+            character,
             index,
             stack,
             lineNumber,
@@ -70,6 +72,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
     case '<': //EJS style template strings
       if (isQuoteCharacter(head) && startsWith(text, index, '<%')) {
         ({head, stack} = push(stack, '<%'));
+        character = '<%';
         index += 2;
       } else {
         index += 1;
@@ -78,6 +81,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
     case '%':
       if (head === '<%' && startsWith(text, index, '%>')) {
         ({head, stack} = pop(stack));
+        character = '%>';
         index += 2;
       } else {
         index += 1;
@@ -86,6 +90,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
     case '[': //Polymer style template strings
       if (isQuoteCharacter(head) && startsWith(text, index, '[[')) {
         ({head, stack} = push(stack, '[['));
+        character = '[[';
         index += 2;
       } else {
         index += 1;
@@ -94,6 +99,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
     case ']':
       if (head === '[[' && startsWith(text, index, ']]')) {
         ({head, stack} = pop(stack));
+        character = ']]';
         index += 2;
       } else {
         index += 1;
@@ -102,6 +108,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
     case '$': //Native javscript template strings
       if (head === '`' && startsWith(text, index, '${')) {
         ({head, stack} = push(stack, '${'));
+        character = '${';
         index += 2;
       } else {
         index += 1;
@@ -110,6 +117,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
     case '{': //Angular style template strings
       if (isQuoteCharacter(head) && startsWith(text, index, '{{')) {
         ({head, stack} = push(stack, '{{'));
+        character = '{{';
         index += 2;
       } else {
         index += 1;
@@ -118,6 +126,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
     case '}':
       if (head === '{{' && startsWith(text, index, '}}')) {
         ({head, stack} = pop(stack));
+        character = '}}';
         index += 2;
       } else if (head === '${' && startsWith(text, index, '}')) {
         ({head, stack} = pop(stack));
@@ -129,6 +138,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
     case '*':
       if (head === '/*' && startsWith(text, index, '*/')) {
         ({head, stack} = pop(stack));
+        character = '*/';
         index += 2;
       } else {
         index += 1;
@@ -139,9 +149,13 @@ function readCharacter(text, {index, stack, lineNumber}) {
 
       if (!escaped && testString === '//') {
         ({head, stack} = push(stack, testString));
+        comments = '';
+        character = '//';
         index += 2;
       } else if (!escaped && testString === '/*') {
         ({head, stack} = push(stack, testString));
+        comments = '';
+        character = '/*';
         index += 2;
       } else {
         index += 1;
@@ -180,6 +194,7 @@ function readCharacter(text, {index, stack, lineNumber}) {
     case '\n':
       if (head === '//') {
         ({head, stack} = pop(stack));
+        comments = null;
       }
       index += 1;
       lineNumber += 1;
@@ -189,10 +204,24 @@ function readCharacter(text, {index, stack, lineNumber}) {
       break;
   }
 
-  if (localization) {
-    return {index, stack, lineNumber, localization};
+  if (isCommentCharacter(head) && !isCommentCharacter(character)) {
+    comments += character;
   }
 
-  return {index, stack, lineNumber};
+  if (!isCommentCharacter(head) && typeof comments === 'string' && character !== '*/') {
+    comments = null;
+  }
+
+  const output = {index, stack, lineNumber, character};
+
+  if (localization) {
+    output.localization = localization
+  }
+
+  if (comments !== null && comments !== undefined) {
+    output.comments = comments;
+  }
+
+  return output;
 }
 module.exports = readCharacter;
