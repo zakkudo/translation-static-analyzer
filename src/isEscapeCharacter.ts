@@ -13,6 +13,8 @@ const escapeCharacters = new Set([
  * not execute their usual meaning.
  * @private
  */
-module.exports = function isEscapeCharacter(character) {
+function isEscapeCharacter(character : string) : boolean {
   return escapeCharacters.has(character);
 }
+
+export default isEscapeCharacter;

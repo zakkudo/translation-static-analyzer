@@ -1,9 +1,9 @@
 /**
- * @param {*} data - Removes all translation values so the object can be used as a translation template
- * @return {*} The scrubbed localization tree
+ * @param data - Removes all translation values so the object can be used as a translation template
+ * @return The scrubbed localization tree
  * @private
  */
-module.exports = function scrubLocalization(data) {
+function scrubLocalization(data : any) {
   return Object.keys(data).reduce((accumulator, k) => {
     if (typeof data[k] === 'string') {
       return Object.assign(accumulator, {[k]: ''});
@@ -12,3 +12,5 @@ module.exports = function scrubLocalization(data) {
     }
   }, {});
 }
+
+export default scrubLocalization;

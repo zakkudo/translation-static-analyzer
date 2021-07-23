@@ -1,48 +1,79 @@
-const InvalidTemplateHeaderError = require('./errors/InvalidTemplateHeaderError');
+type Plurals = {
+  length?: number;
+  countToIndex?: (count: number) => number;
+};
 
-function slice(text, start, end) {
-  if (end < 0) {
-    end = text.length;
+type Headers = {
+  plurals: Plurals;
+  "Project-Id-Version"?: string;
+  "POT-Creation-Date"?: string;
+  "PO-Revision-Date"?: string;
+  "Language-Team"?: string;
+  "MIME-Version"?: string;
+  "Content-Type"?: string;
+  "Content-Transfer-Encoding"?: string;
+  "X-Generator"?: string;
+  "Last-Translator"?: string;
+  "Plural-Forms": string;
+  "Language"?: string;
+};
+
+
+/**
+ * @internal
+ */
+function parsePluralForms(locale: string, text = ""): Plurals {
+  const [nplurals, plural] = `${text};`.split(";").map((p) => p.trim());
+  const length = parseInt((nplurals.match(/nplurals=([0-9]+)/) || [])[1]);
+  const pluralValue = (plural.match(/plural=([^;]+)/) || [])[1];
+
+  const out: Plurals = {};
+
+  if (!Number.isNaN(length)) {
+    out.length = length;
   }
 
-  return text.slice(start, end);
+  if (pluralValue) {
+    const countToIndexImplementation = new Function(
+      "n",
+      `return ${pluralValue};`
+    );
+
+    const countToIndex = (n: number): number => {
+      const value = countToIndexImplementation(n);
+
+      if (typeof value === "boolean") {
+        return value ? 1 : 0;
+      }
+
+      return value;
+    };
+
+    out.countToIndex = countToIndex;
+  }
+
+  return out;
 }
 
-function split(text, delimitor) {
-  const index = text.indexOf(delimitor);
+/**
+ * @internal
+ */
+function parseHeaders(locale: string, text = ""): Headers {
+  const lines = text.split("\n").map((l) => l.trim());
+  const headers: Record<string, string> = {};
 
-  return [slice(text, 0, index), slice(text, index + 1, -1)].map((a) => a.trim());
-}
+  for (const l of lines) {
+    const [key, value] = l.split(":", 2).map((p) => p.trim());
 
-function parsePluralForms(text) {
-  return text.split(';').filter(l => l).reduce((accumulator, a) => {
-    let [key, value] = split(a, '=');
-
-    if (key === 'nplurals') {
-      value = parseInt(value);
+    if (key && value) {
+      headers[key] = value;
     }
+  }
 
-    if (!key) {
-      throw new InvalidTemplateHeaderError(text, 'Plural-Forms has a blank key, actual: %s', JSON.stringify(text));
-    }
+  const pluralForms = headers["Plural-Forms"];
+  const plurals = parsePluralForms(locale, pluralForms);
 
-    if (value === undefined || Number.isNaN(value)) {
-      throw new InvalidTemplateHeaderError(text, `Plural-Forms expected a value for key ${JSON.stringify(key)}, actual: %s`, JSON.stringify(text));
-    }
-
-    return Object.assign({}, accumulator, {[key]: value});
-  }, {});
+  return { plurals, headers };
 }
 
-function parseHeader(header) {
-  //"Plural-Forms: nplurals=2; plural=n != 1;\n"
-  //nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);
-  const lines = header.split('\n').filter(l => l);
-  const configuration = new Map(lines.map((l) => split(l, ':')));
-  const pluralForms = configuration.get('Plural-Forms') || 'nplurals=2; plural=n != 1';
-
-  configuration.set('Plural-Forms', parsePluralForms(pluralForms));
-  return configuration;
-}
-
-module.exports = parseHeader;
+export default parseHeaders;

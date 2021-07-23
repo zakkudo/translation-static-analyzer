@@ -25,10 +25,12 @@ function pluralHasTranslation(data) {
  * @return {Boolean} true if a translation exists
  * @private
  */
-module.exports = function hasTranslation(data) {
+function hasTranslation(data : any) {
   if (typeof data === 'string') {
     return singularHasTranslation(data);
   }
 
   return pluralHasTranslation(data);
 }
+
+export default hasTranslation;

@@ -1,26 +1,26 @@
+const path = require("path");
+
 module.exports = {
-  "extends": [
+  root: true,
+  parser: "@typescript-eslint/parser",
+  extends: [
     "eslint:recommended",
-    "plugin:node/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:json/recommended",
+    "plugin:node/recommended",
   ],
-  "env": {
-    "jest/globals": true
+  plugins: ["@typescript-eslint", "eslint-plugin-tsdoc", "json"],
+  env: {
+    es2021: true,
+    node: true,
+    jest: true,
   },
-  "globals": {
-    "__VERSION__": true
+  parserOptions: {
+    requireConfigFile: false,
+    tsconfigRootDir: path.join(__dirname, ".."),
   },
-  "plugins": [
-    "jasmine",
-    "jest"
-  ],
-  "parserOptions": {
-    "ecmaVersion": 6,
-    "ecmaFeatures": {
-      "experimentalObjectRestSpread": true
-    }
+  rules: {
+    'node/no-unsupported-features/es-syntax': 'off',
+    'node/no-missing-import': 'off',
   },
-  "rules": {
-    'max-len': ["error", { "code": 100, "comments": 120 }],
-    "no-console": "off"
-  }
 };
