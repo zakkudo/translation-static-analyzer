@@ -1,7 +1,7 @@
-const readCharacter = require('./readCharacter');
+import readCharacter from "./readCharacter";
 
-function readCharacterWithErrorHandling(text, state) {
-  let currentState = Object.assign({}, state);
+function readCharacterWithErrorHandling(text: string, state: State): State {
+  const currentState = Object.assign({}, state);
   let nextState;
 
   while (nextState === undefined) {
@@ -19,6 +19,19 @@ function readCharacterWithErrorHandling(text, state) {
   return nextState;
 }
 
+type State = {
+  index: number;
+  stack: string[];
+  lineNumber: number;
+  localizationCall?: LocalizationCall;
+};
+
+type LocalizationCall = {
+  fn: string;
+  lineNumber: number;
+  index: number;
+};
+
 /**
  * Reads a full string, grabbing all of the localization functions.
  * The function is greedy rewinding to unclosed stack items and then skipping only
@@ -27,14 +40,14 @@ function readCharacterWithErrorHandling(text, state) {
  * @return {Array<String>} The strings
  * @private
  */
-module.exports = function readString(text) {
-  const localization = {};
-  let state = {
+function readString(text: string): LocalizationCall[] {
+  let state: State = {
     index: 0,
     stack: [],
     lineNumber: 0,
   };
   let previousIndex = 0;
+  const localizationCalls: LocalizationCall[] = [];
 
   while ((state = readCharacterWithErrorHandling(text, state)) !== null) {
     if (state.index === previousIndex) {
@@ -46,20 +59,33 @@ module.exports = function readString(text) {
       );
     }
 
-    if (state.localization) {
-      const {key, fn} = state.localization;
-      const {index, lineNumber} = state;
+    if (state.localizationCall) {
+      const {
+        extractedComments,
+        msgid,
+        msgidPlural,
+        msgctxt,
+        fn,
+      } = state.localizationCall;
+      const { index, lineNumber } = state;
 
-      if (!localization[key]) {
-        localization[key] = [{fn, lineNumber, index}];
-      } else {
-        localization[key].push({fn, lineNumber, index});
-      }
+      localizationCalls.push([
+        {
+          fn,
+          lineNumber,
+          index,
+          extractedComments,
+          msgid,
+          msgidPlural,
+          msgctxt,
+        },
+      ]);
     }
 
     previousIndex = state.index;
   }
 
-  return localization;
+  return localizationCalls;
 }
 
+export default readString;

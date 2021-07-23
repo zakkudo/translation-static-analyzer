@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
 export NODE_ENV="build"
 
-CURRENT_DIR=$(pwd)
-PROJECT_DIR=$(git rev-parse --show-toplevel)
+CURRENT_DIR=`pwd`
+PROJECT_DIR=`git rev-parse --show-toplevel`
 
 cd $PROJECT_DIR
 
@@ -17,10 +17,14 @@ mkdir build
 cp package.json build/package.json
 cp README.md build/README.md
 
+./node_modules/.bin/tsc --emitDeclarationOnly
+
 ./node_modules/.bin/babel src \
     --out-dir build \
+    --extensions ".ts" \
     --source-maps inline \
-    --ignore "src/test.js" \
-    --ignore "src/*.test.js" \
+    --ignore "src/**/test.ts" \
+    --ignore "src/**/*.test.ts" \
     --verbose \
     "$@"
+

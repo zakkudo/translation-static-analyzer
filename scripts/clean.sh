@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
-CURRENT_DIR=$(pwd)
-PROJECT_DIR=$(git rev-parse --show-toplevel)
+CURRENT_DIR=`pwd`
+PROJECT_DIR=`git rev-parse --show-toplevel`
 
 cd $PROJECT_DIR
 

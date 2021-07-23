@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
@@ -7,18 +7,11 @@ export NODE_ENV="document"
 CURRENT_DIR=$(pwd)
 PROJECT_DIR=$(git rev-parse --show-toplevel)
 BIN_DIR=$(npm bin)
-JSDOC="$BIN_DIR/jsdoc"
-OPTIONS="--module-index-format none --global-index-format none --example-lang js --heading-depth 3"
+TYPEDOC="$BIN_DIR/typedoc"
 
 cd $PROJECT_DIR
 
-$JSDOC -c jsdoc.config.json "$@"
-cat src/README.md > README.md
+$TYPEDOC --out documentation src --exclude "**/*test.ts" --excludeInternal
+cp src/README.md documentation
 
-echo "" >> README.md
-echo "## API" >> README.md
-echo "" >> README.md
-
-./node_modules/.bin/jsdoc2md src/index.js $OPTIONS >> README.md
-
-./scripts/postProcessReadme.js README.md
+./node_modules/.bin/concat-md --toc --decrease-title-levels --file-name-as-title --dir-name-as-title documentation > README.md

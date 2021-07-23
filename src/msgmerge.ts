@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 const ArgumentParser = require('@zakkudo/argument-parser');
 const TranslationStaticAnalyzer = require('.');
@@ -45,7 +44,7 @@ const parse = new ArgumentParser({
 const parsed = parse(argv)
 const files = (parsed.leftover || [])[0] || '**/*.js';
 
-var analyzer = new TranslationStaticAnalyzer({
+const analyzer = new TranslationStaticAnalyzer({
   debug: parsed.debug,
   locales: parsed.locales,
   target: parsed.target,
@@ -54,7 +53,7 @@ var analyzer = new TranslationStaticAnalyzer({
 });
 
 let debounceTimeout;
-let filenames = new Set();
+const filenames = new Set();
 
 function update(filename) {
   filenames.add(filename);
