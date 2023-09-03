@@ -1,13 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
+set -x
 
 export NODE_ENV="document"
 
 CURRENT_DIR=$(pwd)
 PROJECT_DIR=$(git rev-parse --show-toplevel)
 BIN_DIR="$(npm root)/.bin"
-BIN_DIR=$(npm bin)
 TYPEDOC="$BIN_DIR/typedoc"
 
 cd $PROJECT_DIR
