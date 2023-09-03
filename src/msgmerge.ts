@@ -1,9 +1,8 @@
-
-const ArgumentParser = require('@zakkudo/argument-parser');
-const TranslationStaticAnalyzer = require('.');
-const argv = process.argv.slice(2);
-const path = require('path');
-const chokidar = require('chokidar');
+import ArgumentParser from '@zakkudo/argument-parser';
+import TranslationStaticAnalyzer from '.';
+import argv = process.argv.slice(2);
+import path from 'path';
+import chokidar from 'chokidar';
 
 const parse = new ArgumentParser({
   name: 'update-translations',

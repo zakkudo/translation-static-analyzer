@@ -6,7 +6,7 @@ function fromKey(key) {
   return key.split(':').filter(p => p).map(unescape);
 }
 
-module.exports = fromKey;
+export default fromKey;
 
 
 

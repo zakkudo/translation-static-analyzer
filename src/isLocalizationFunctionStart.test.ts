@@ -1,4 +1,4 @@
-const isLocalizationFunctionStart = require('./isLocalizationFunctionStart');
+import isLocalizationFunctionStart from './isLocalizationFunctionStart';
 
 describe('isLocalizationFunctionStart', () => {
   describe('Singular', () => {

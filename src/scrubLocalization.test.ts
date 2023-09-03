@@ -1,4 +1,4 @@
-const scrubLocalization = require('./scrubLocalization');
+import scrubLocalization from './scrubLocalization';
 
 describe('scrubLocalization', () => {
   it('does nothing when already empty', () => {

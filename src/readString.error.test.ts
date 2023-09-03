@@ -1,6 +1,7 @@
-const readString = require('./readString');
+import readString from './readString';
 jest.mock('./readCharacter');
-const readCharacter = require('./readCharacter');
+import readCharacter from './readCharacter';
+
 readCharacter.mockReturnValue({index: 0, stack: []});
 
 describe('readString', () => {

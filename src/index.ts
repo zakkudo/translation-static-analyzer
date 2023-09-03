@@ -1,7 +1,3 @@
-/**
- * @module @zakkudo/translation-static-analyzer
- */
-
 import fs from "fs";
 import console from "console";
 import glob from "glob";
@@ -737,4 +733,4 @@ class TranslationStaticAnalyzer {
   }
 }
 
-module.exports = TranslationStaticAnalyzer;
+export default TranslationStaticAnalyzer;

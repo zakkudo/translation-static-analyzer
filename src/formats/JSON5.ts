@@ -1,6 +1,6 @@
-const toKey = require('../toKey');
-const fromKey = require('../fromKey');
-const validate = require('../validate');
+from toKey from '../toKey';
+ fromKey from '../fromKey';
+ validate from '../validate';
   /*
    {
       "notes": "translator notes",
@@ -24,8 +24,8 @@ const validate = require('../validate');
   msgstr translated-string
   */
 
-const JSON5 = require('json5');
-const jju = require('jju');
+import JSON5 from 'json5';
+import jju from 'jju';
 
 function isWhitespace(token) {
   return token.type === 'whitespace' || token.type === 'newline';
@@ -177,4 +177,4 @@ class _JSON5 {
   }
 }
 
-module.exports = _JSON5;
+export default _JSON5;

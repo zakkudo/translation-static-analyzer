@@ -1,5 +1,7 @@
 class InvalidTemplateHeaderError extends Error {
-  constructor(text, ...message) {
+  text: string;
+
+  constructor(text: string, ...message : ConstructorParameters<ErrorConstructor>) {
     super(...message);
     this.text = text;
   }
@@ -12,4 +14,4 @@ class InvalidTemplateHeaderError extends Error {
   }
 }
 
-module.exports = InvalidTemplateHeaderError;
+export default InvalidTemplateHeaderError;

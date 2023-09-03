@@ -1,10 +1,10 @@
-const fs = require('fs-extra');
-const path = require('path');
-const PO = require('./formats/PO');
-const JSON = require('./formats/JSON');
-const JSON5 = require('./formats/JSON5');
-const UnsupportedFormatError = require('./errors/UnsupportedFormatError');
-const FormatParsingError = require('./errors/FormatParsingError');
+import fs from 'fs-extra';
+import path from 'node:path';
+import PO from './formats/PO';
+import JSON from './formats/JSON';
+import JSON5 from './formats/JSON5';
+import UnsupportedFormatError from './errors/UnsupportedFormatError';
+import FormatParsingError from './errors/FormatParsingError';
 
 const FALLBACK_FORMAT = 'po';
 
@@ -90,4 +90,4 @@ class TemplateDirectory {
   */
 }
 
-module.exports = TemplateDirectory;
+export default TemplateDirectory;

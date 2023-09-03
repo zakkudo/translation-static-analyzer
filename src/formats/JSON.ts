@@ -7,7 +7,7 @@
   msgid untranslated-string
   msgstr translated-string
   */
-const validate = require('../validate');
+import validate from '../validate';
 
 
 class _JSON {
@@ -24,4 +24,4 @@ class _JSON {
   }
 }
 
-module.exports = _JSON;
+export default _JSON;

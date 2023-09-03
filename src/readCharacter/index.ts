@@ -59,11 +59,6 @@ function readCharacter(text: string, { index, stack, lineNumber }: Stack, gettex
   let testString;
   let localizationCall: string = null;
 
-  TODO
-  string;
-  string;
-  string;
-  string;
   const gettextStrings = Object.values(gettextFuntionNames);
   const mapping = new Map(Object.entries(gettextFuntionNames).map(([a, b]) => [b, a]));
 
@@ -218,9 +213,6 @@ function readCharacter(text: string, { index, stack, lineNumber }: Stack, gettex
       }
       index += 1;
       lineNumber += 1;
-      break;
-    default:
-      index += 1;
       break;
   }
 

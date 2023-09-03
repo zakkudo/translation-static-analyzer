@@ -1,5 +1,5 @@
-const TargetDirectory = require('./TargetDirectory');
-const fs = require('fs-extra');
+import TargetDirectory from './TargetDirectory';
+import fs from 'fs-extra';
 
 jest.mock('fs-extra');
 

@@ -1,6 +1,6 @@
+import readCharacter from './readCharacter';
 
 function peekUntil(text, iterator, fn) {
-  const readCharacter = require('./readCharacter');
   let nextIterator = readCharacter(text, iterator);
 
   while (nextIterator && fn(iterator, nextIterator)) {
@@ -11,4 +11,4 @@ function peekUntil(text, iterator, fn) {
   return iterator;
 }
 
-module.exports = peekUntil;
+export default peekUntil;

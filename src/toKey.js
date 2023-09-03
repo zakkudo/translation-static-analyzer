@@ -6,7 +6,7 @@ function toKey(...tokens) {
   return tokens.filter(p => typeof p === 'string').map(escape).join(':');
 }
 
-module.exports = toKey;
+export default toKey;
 
 
 

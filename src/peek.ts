@@ -1,6 +1,6 @@
+import readCharacter from './readCharacter';
 
 function peek(text, iterator, fn) {
-  const readCharacter = require('./readCharacter');
   const nextIterator = readCharacter(text, iterator);
 
   if (fn(nextIterator)) {
@@ -10,4 +10,4 @@ function peek(text, iterator, fn) {
   return iterator;
 }
 
-module.exports = peek;
+export default peek;

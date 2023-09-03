@@ -17,5 +17,5 @@ class FormatParsingError extends Error {
   }
 }
 
-module.exports = FormatParsingError;
+export default FormatParsingError;
 

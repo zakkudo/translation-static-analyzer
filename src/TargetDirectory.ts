@@ -1,6 +1,6 @@
-const path = require('path');
-const fs = require('fs-extra');
-const toKey = require('./toKey');
+import path from 'path';
+import fs from 'fs-extra';
+import toKey from './toKey';
 
 /**
  * Compresses the translation for use by code, removing any extra context information
@@ -73,4 +73,4 @@ class TargetDirectory {
   }
 }
 
-module.exports = TargetDirectory;
+export default TargetDirectory;

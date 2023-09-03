@@ -1,4 +1,4 @@
-const validate = require('../validate');
+import validate from '../validate';
 
 //http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html
 /*
@@ -114,7 +114,7 @@ class PO {
   static parse(text) {
     const data = [];
 
-    let reader = new Reader();
+    const reader = new Reader();
 
     text.split('\n').map(removeUnusedComment).forEach((line, index, lines) => {
       if (!reader.readLine(line) || (line !== '' && index + 1 === lines.length)) {
@@ -254,4 +254,4 @@ msgstr ""
 
 */
 
-module.exports = PO;
+export default PO;

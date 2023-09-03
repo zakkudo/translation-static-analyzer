@@ -1,4 +1,4 @@
-const FormatParsingError = require('./FormatParsingError');
+import FormatParsingError from './FormatParsingError';
 
 describe('errors/FormatParsingError', () => {
   it('creates an error with a stack', () => {

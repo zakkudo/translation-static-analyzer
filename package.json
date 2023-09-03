@@ -24,7 +24,7 @@
     "node": ">=8.0.0"
   },
   "repository": "github:zakkudo/translation-static-analyzer",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "devDependencies": {
     "@babel/cli": "^7.22.10",
     "@babel/core": "^7.22.11",

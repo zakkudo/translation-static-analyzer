@@ -1,4 +1,4 @@
-const startsWith = require('./startsWith');
+import startsWith from './startsWith';
 
 describe('startsWith', () => {
   it('matches', () => {

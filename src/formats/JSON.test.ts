@@ -1,4 +1,4 @@
-const JSON = require('./JSON');
+import JSON from './JSON';
 
 describe('formats/JSON', () => {
   describe('parse', () => {

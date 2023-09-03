@@ -10,6 +10,6 @@ const commentCharacters = new Set([
  * not execute their usual meaning.
  * @private
  */
-module.exports = function isCommentCharacter(character) {
+export default function isCommentCharacter(character) {
   return commentCharacters.has(character);
 }

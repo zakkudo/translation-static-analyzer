@@ -1,5 +1,5 @@
-const parseHeader = require('./parseHeader');
-const InvalidTemplateHeaderError = require('./errors/InvalidTemplateHeaderError');
+import parseHeader from './parseHeader';
+import InvalidTemplateHeaderError from './errors/InvalidTemplateHeaderError';
 
 describe('parseHeader', () => {
   it('parses simple plural forms', () => {

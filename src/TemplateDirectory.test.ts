@@ -1,7 +1,7 @@
-const TemplateDirectory = require('./TemplateDirectory');
-const UnsupportedFormatError = require('./errors/UnsupportedFormatError');
-const FormatParsingError = require('./errors/FormatParsingError');
-const fs = require('fs-extra');
+import TemplateDirectory from './TemplateDirectory';
+import UnsupportedFormatError from './errors/UnsupportedFormatError';
+import FormatParsingError from './errors/FormatParsingError';
+import fs from 'fs-extra';
 
 jest.mock('fs-extra');
 

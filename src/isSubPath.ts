@@ -5,7 +5,7 @@
  * @return {Boolean} true if it is a subpath.
  * @private
  */
-module.exports = function isSubPath(path, subPath) {
+export default function isSubPath(path: string, subPath: string) {
   return subPath.startsWith(path) &&
     (
       path.length === subPath.length || // /one/two === /one/two

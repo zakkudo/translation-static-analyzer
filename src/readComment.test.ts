@@ -1,4 +1,4 @@
-const readString = require('./readString');
+import readString from './readString';
 
 describe('readString', () => {
   describe('singular', () => {

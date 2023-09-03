@@ -1,9 +1,9 @@
 /*eslint max-len: ["error", {"ignoreStrings": true}]*/
 
-const TranslationStaticAnalyzer = require('.');
-const fs = require('fs-extra');
-const console = require('console');
-const glob = require('glob');
+import TranslationStaticAnalyzer from '.';
+import fs from 'fs-extra';
+import console from 'node:console';
+import glob from 'glob';
 
 jest.mock('path');
 jest.mock('glob');
@@ -11,7 +11,7 @@ jest.mock('fs-extra');
 //jest.mock('console');
 
 const mocks = {};
-const path = require('path');
+import path from 'path';
 
 describe('TranslationStaticAnalyzer', () => {
   beforeEach(() => {

@@ -1,4 +1,4 @@
-const hasTranslation = require('./hasTranslation');
+import hasTranslation from './hasTranslation';
 
 describe('hasTranslation', () => {
   it('returns true for empty object', () => {

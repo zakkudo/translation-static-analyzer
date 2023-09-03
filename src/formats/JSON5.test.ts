@@ -1,4 +1,4 @@
-const JSON5 = require('./JSON5');
+import JSON5 from './JSON5';
 
 describe('formats/JSON5', () => {
   describe('parse', () => {

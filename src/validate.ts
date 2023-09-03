@@ -14,4 +14,4 @@ function validate(entry) {
   return entry;
 }
 
-module.exports = validate;
+export default validate;

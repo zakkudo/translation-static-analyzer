@@ -1,5 +1,7 @@
 class UnsupportedFormatError extends Error {
-  constructor(format) {
+  format: string;
+
+  constructor(format : string) {
     super(`"${format}" is not a supported format`);
 
     this.format = format;
@@ -13,4 +15,4 @@ class UnsupportedFormatError extends Error {
   }
 }
 
-module.exports = UnsupportedFormatError;
+export default UnsupportedFormatError;

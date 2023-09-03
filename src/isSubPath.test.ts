@@ -1,4 +1,4 @@
-const isSubPath = require('./isSubPath');
+import isSubPath from './isSubPath';
 
 describe('isSubPath', () => {
   it('returns true when matches cleanly with no final slash', () => {
