@@ -1,4 +1,3 @@
-
 export type LocalizationItem = {
   developerComments?: string;
   extractedComments?: string;
@@ -8,7 +7,8 @@ export type LocalizationItem = {
   msgidPlural?: string;
   msgstr: string[];
   previousMsgid?: string;
-  sourceReferences: string[];
+  sourceReferences: { filename: string; lineNumber: number }[];
   translatorComments?: string;
   key?: string;
+  status: "existing" | "unused" | "new";
 };

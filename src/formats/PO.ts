@@ -1,5 +1,5 @@
-import validate from 'src/validate';
-import { type LocalizationItem } from 'src/types';
+import validate from "src/validate";
+import { type LocalizationItem } from "src/types";
 
 //http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html
 /*
@@ -12,7 +12,7 @@ import { type LocalizationItem } from 'src/types';
     ],
     "key": "About",
     "context": "default",
-    "value": ""
+    "msgstr": ""
 }
 */
 
@@ -27,14 +27,14 @@ import { type LocalizationItem } from 'src/types';
   msgstr translated-string
   */
 
-const unusedPrefix = '#~ '
+const unusedPrefix = "#~ ";
 const unusedPattern = /^#~ /;
 
 /**
  * @private
  */
-function removeUnusedComment(line) {
-  return line.replace(unusedPattern, '');
+function removeUnusedComment(line: string): string {
+  return line.replace(unusedPattern, "");
 }
 
 const patterns = [
@@ -55,7 +55,11 @@ const patterns = [
 ];
 
 class Reader {
-  readLine(line) {
+  previousKey: keyof LocalizationItem | undefined;
+  previousIndex: number | undefined;
+  data: Partial<LocalizationItem> | undefined;
+
+  readLine(line: string) {
     patterns.some((p) => {
       const matches = (line.match(p) || []).slice(1);
 
@@ -63,38 +67,38 @@ class Reader {
         delete this.data;
       }
 
-      const data = this.data = this.data || {};
+      const data: Partial<LocalizationItem> = (this.data = this.data || {});
 
       //Blank line, entry end
-      if (line === '') {
+      if (line === "") {
         delete this.previousKey;
         delete this.previousIndex;
         return true;
         //Continuing line start
       } else if (matches.length === 1) {
-        const value = matches[0]
+        const msgstr = matches[0];
 
         if (Object(data[this.previousKey]) === data[this.previousKey]) {
-          data[this.previousKey][this.previousIndex] += value;
-        } else if (typeof data[this.previousKey] === 'string') {
-          data[this.previousKey] += value;
+          data[this.previousKey][this.previousIndex] += msgstr;
+        } else if (typeof data[this.previousKey] === "string") {
+          data[this.previousKey] += msgstr;
         }
         return true;
         //Singular form start
       } else if (matches.length === 2) {
-        const key = this.previousKey = matches[0];
-        const value = matches[1];
+        const msgid = (this.previousKey = matches[0]);
+        const msgstr = matches[1];
 
-        data[key] = value;
+        data[msgid] = msgstr;
         return true;
         //Plural form start
       } else if (matches.length == 3) {
-        const key = this.previousKey = matches[0];
-        const index = this.previousIndex = matches[1];
-        const value = matches[2];
-        const list = data[key] = this.data[key] || {};
+        const msgid = (this.previousKey = matches[0]);
+        const index = (this.previousIndex = matches[1]);
+        const msgstr = matches[2];
+        const list = (data[msgid] = this.data[msgid] || {});
 
-        list[index] = value;
+        list[index] = msgstr;
         return true;
       }
 
@@ -105,101 +109,120 @@ class Reader {
   }
 }
 
-function breakLines(text) {
-  const lines = text.split('\n').map((t) => JSON.stringify(t).slice(1, -1));
+function breakLines(text: string): string {
+  const lines = text.split("\n").map((t) => JSON.stringify(t).slice(1, -1));
 
   return `"${lines.join('\\n"\n"')}"`;
 }
 
 class PO {
-  static parse(text : string) {
-    const data = [];
+  static parse(text: string) {
+    const data: LocalizationItem[] = [];
 
     const reader = new Reader();
 
-    text.split('\n').map(removeUnusedComment).forEach((line, index, lines) => {
-      if (!reader.readLine(line) || (line !== '' && index + 1 === lines.length)) {
-        const entry = {}
-        let hasContent = false;
+    text
+      .split("\n")
+      .map(removeUnusedComment)
+      .forEach((line, index, lines) => {
+        if (
+          !reader.readLine(line) ||
+          (line !== "" && index + 1 === lines.length)
+        ) {
+          const entry = {};
+          let hasContent = false;
 
-        Object.entries({
-          'notes': '#',
-          'comments': '#.',
-          'key': 'msgid',
-          'plural': 'msgid_plural',
-          'context': 'msgctxt',
-          'value': 'msgstr',
-        }).forEach(([internalKey, poKey]) => {
-          if (reader.data[poKey] !== undefined) {
-            hasContent = true;
-            const value = reader.data[poKey];
+          Object.entries({
+            translatorComments: "#",
+            extractedComments: "#.",
+            msgid: "msgid",
+            msgidPlural: "msgid_plural",
+            msgctxt: "msgctxt",
+            msgstr: "msgstr",
+          }).forEach(
+            ([internalKey, poKey]: [keyof LocalizationItem, string]) => {
+              if (reader.data[poKey] !== undefined) {
+                hasContent = true;
+                const msgstr = reader.data[poKey];
 
-            if (Object(value) === value) {
-              entry[internalKey] = Object.entries(value).reduce((accumulator, [k, v]) => {
-                return Object.assign({}, accumulator, {[k]: JSON.parse(`"${v}"`)});
-              }, {});
-            } else {
-              entry[internalKey] = JSON.parse(`"${value}"`);
-            }
+                if (Object(msgstr) === msgstr) {
+                  entry[internalKey] = Object.entries(msgstr).reduce(
+                    (accumulator, [k, v]) => {
+                      return Object.assign({}, accumulator, {
+                        [k]: JSON.parse(`"${v}"`),
+                      });
+                    },
+                    {},
+                  );
+                } else {
+                  entry[internalKey] = JSON.parse(`"${msgstr}"`);
+                }
+              }
+            },
+          );
+
+          if (hasContent) {
+            data.push(entry);
           }
-        });
-
-        if (hasContent) {
-          data.push(entry);
         }
-      }
-    });
+      });
 
     return data.map(validate);
   }
 
-  static stringify(data : LocalizationItem[]) : string {
-    return data.map((d) => {
-      let accumulator = ''
-      const prefix = d.status === 'unused' ? unusedPrefix : '';
+  static stringify(data: LocalizationItem[]): string {
+    return data
+      .map((d) => {
+        let accumulator = "";
+        const prefix = d.status === "unused" ? unusedPrefix : "";
 
-      if (d.notes) {
-        accumulator += `${prefix}# ${d.notes}\n`;
-      }
-
-      if (d.status && !['existing', 'unused'].includes(d.status)) {
-        accumulator += `#. ${d.status.toUpperCase()}\n`;
-      }
-
-      if (d.comments) {
-        accumulator += `#. ${d.comments}\n`;
-      }
-
-      if (d.references && d.references.length) {
-        accumulator += `#: ${d.references.map((r) => `${r.filename}:${r.lineNumber}`).join(' ')}\n`;
-      }
-
-      if (d.context && d.context !== 'default') {
-        accumulator += `${prefix}msgctxt ${JSON.stringify(d.context)}\n`;
-      }
-
-      if (d.hasOwnProperty('key')) {
-        accumulator += `${prefix}msgid ${breakLines(d.key)}\n`;
-      }
-
-      if (d.hasOwnProperty('plural')) {
-        accumulator += `${prefix}msgid_plural ${breakLines(d.plural)}\n`;
-      }
-
-      if (d.value !== undefined) {
-        if (typeof d.value === 'string') {
-          accumulator += `${prefix}msgstr ${breakLines(d.value)}\n`;
-        } else {
-          Object.entries(d.value).forEach(([index, value]) => {
-            accumulator += `${prefix}msgstr[${index}] ${breakLines(value)}\n`;
-          });
+        if (d.translatorComments) {
+          accumulator += `${prefix}# ${d.translatorComments}\n`;
         }
-      }
 
-      validate(d);
+        if (d.status && !["existing", "unused"].includes(d.status)) {
+          accumulator += `#. ${d.status.toUpperCase()}\n`;
+        }
 
-      return accumulator;
-    }).join('\n');
+        if (d.extractedComments) {
+          accumulator += `#. ${d.extractedComments}\n`;
+        }
+
+        if (d.sourceReferences && d.sourceReferences.length) {
+          accumulator += `#: ${d.sourceReferences
+            .map((r) => `${r.filename}:${r.lineNumber}`)
+            .join(" ")}\n`;
+        }
+
+        if (d.msgctxt && d.msgctxt !== "default") {
+          accumulator += `${prefix}msgctxt ${JSON.stringify(d.msgctxt)}\n`;
+        }
+
+        if (Object.hasOwnProperty.call(d, "msgid")) {
+          accumulator += `${prefix}msgid ${breakLines(d.msgid)}\n`;
+        }
+
+        if (Object.hasOwnProperty.call(d, "msgidPlural")) {
+          accumulator += `${prefix}msgid_plural ${breakLines(d.msgidPlural)}\n`;
+        }
+
+        if (d.msgstr !== undefined) {
+          if (typeof d.msgstr === "string") {
+            accumulator += `${prefix}msgstr ${breakLines(d.msgstr)}\n`;
+          } else {
+            Object.entries(d.msgstr).forEach(([index, msgstr]) => {
+              accumulator += `${prefix}msgstr[${index}] ${breakLines(
+                msgstr,
+              )}\n`;
+            });
+          }
+        }
+
+        validate(d);
+
+        return accumulator;
+      })
+      .join("\n");
   }
 }
 /*
@@ -214,7 +237,7 @@ class PO {
 //gettext (
 ///* This is the third comments.  */
 //"baz");
-  /*
+/*
  *
  *
  *
