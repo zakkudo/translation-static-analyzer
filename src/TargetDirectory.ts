@@ -35,7 +35,7 @@ function collapseLocalizations(localizations) {
 }
 
 class TargetDirectory {
-  constructor(directoryPath, cache = {}) {
+  constructor(directoryPath : string, cache = {}) {
     this.cache = cache;
     this.directoryPath = directoryPath;
   }
@@ -61,7 +61,7 @@ class TargetDirectory {
     }
   }
 
-  writeLocalization(locale, localization) {
+  writeLocalization(locale : string, localization) {
     const filename = this.buildFilename(locale);
     const collapsed = collapseLocalization(localization);
     const serialized = JSON.stringify(collapsed, null, 4);

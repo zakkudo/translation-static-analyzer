@@ -1,4 +1,5 @@
-import validate from '../validate';
+import validate from 'src/validate';
+import { type LocalizationItem } from 'src/types';
 
 //http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html
 /*
@@ -111,7 +112,7 @@ function breakLines(text) {
 }
 
 class PO {
-  static parse(text) {
+  static parse(text : string) {
     const data = [];
 
     const reader = new Reader();
@@ -152,7 +153,7 @@ class PO {
     return data.map(validate);
   }
 
-  static stringify(data) {
+  static stringify(data : LocalizationItem[]) : string {
     return data.map((d) => {
       let accumulator = ''
       const prefix = d.status === 'unused' ? unusedPrefix : '';

@@ -1,3 +1,5 @@
+import { LocalizationItem } from 'src/types';
+
 /*
   #  translator-comments
   #. extracted-comments
@@ -11,11 +13,11 @@ import validate from '../validate';
 
 
 class _JSON {
-  static parse(text) {
+  static parse(text: string) : LocalizationItem {
     return JSON.parse(text).map(validate);
   }
 
-  static stringify(data) {
+  static stringify(data : LocalizationItem[]) {
     data.forEach((d) => {
       validate(d);
     });

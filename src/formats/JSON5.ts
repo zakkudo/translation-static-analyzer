@@ -1,6 +1,10 @@
-from toKey from '../toKey';
- fromKey from '../fromKey';
- validate from '../validate';
+import toKey from 'src/toKey';
+import fromKey from 'src/fromKey';
+import validate from 'src/validate';
+import JSON5 from 'json5';
+import jju from 'jju';
+import { type LocalizationItem } from 'src/types';
+
   /*
    {
       "notes": "translator notes",
@@ -24,10 +28,8 @@ from toKey from '../toKey';
   msgstr translated-string
   */
 
-import JSON5 from 'json5';
-import jju from 'jju';
 
-function isWhitespace(token) {
+function isWhitespace(token: LocalizationItem) {
   return token.type === 'whitespace' || token.type === 'newline';
 }
 
