@@ -6,7 +6,7 @@ export NODE_ENV="document"
 
 CURRENT_DIR=$(pwd)
 PROJECT_DIR=$(git rev-parse --show-toplevel)
-BIN_DIR=$(npm bin)
+BIN_DIR="$(npm root)/.bin"
 JSDOC="$BIN_DIR/jsdoc"
 OPTIONS="--module-index-format none --global-index-format none --example-lang js --heading-depth 3"
 
