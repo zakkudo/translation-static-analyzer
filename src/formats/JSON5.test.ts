@@ -305,6 +305,54 @@ continued*/
       );
     });
 
+    it("will serialize previous msgid and msgctxt", () => {
+      expect(
+        JSON5.stringify([
+          {
+            sourceReferences: [{ filename: "a.js", lineNumber: 30 }],
+            previous: {
+              msgid: "test previous msgid",
+              msgctxt: "test previous msgctxt",
+            },
+            msgid: "test msgid",
+            msgstr: "test msgstr",
+          },
+        ]),
+      ).toEqual(
+        `{
+    "test msgid": {
+        //| msgid test previous msgid
+        //| msgctxt test previous msgctxt
+        //: a.js:30
+        "default": "test msgstr"
+    }
+}`,
+      );
+    });
+
+    it("will parse previous msgid and msgctxt", () => {
+      expect(
+        JSON5.parse(`{
+    "test msgid": {
+        //| msgid test previous msgid
+        //| msgctxt test previous msgctxt
+        //: a.js:30
+        "default": "test msgstr"
+    }
+}`),
+      ).toEqual([
+        {
+          previous: {
+            msgid: "test previous msgid",
+            msgctxt: "test previous msgctxt",
+          },
+          msgctxt: "default",
+          msgid: "test msgid",
+          msgstr: "test msgstr",
+        },
+      ]);
+    });
+
     it("with unused comment", () => {
       expect(
         JSON5.stringify([

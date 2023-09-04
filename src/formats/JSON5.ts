@@ -76,8 +76,9 @@ const commentsMapping: MappingTuple[] = [
       if (entry.previous.msgid) {
         out.push(`msgid ${entry.previous.msgid}`);
       }
+
       if (entry.previous.msgctxt) {
-        out.push(`msgid ${entry.previous.msgctxt}`);
+        out.push(`msgctxt ${entry.previous.msgctxt}`);
       }
 
       return out.join("\n");
@@ -188,6 +189,13 @@ class _JSON5 {
                 } else if (c.startsWith(". ")) {
                   out.developerComments = out.developerComments || "";
                   out.developerComments += c.slice(2);
+                } else if (c.startsWith("| ")) {
+                  out.previous = out.previous || {};
+                  if (c.startsWith("| msgid")) {
+                    out.previous.msgid = c.slice(8);
+                  } else if (c.startsWith("| msgctxt")) {
+                    out.previous.msgctxt = c.slice(10);
+                  }
                 }
               });
             }
