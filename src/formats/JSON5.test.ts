@@ -136,6 +136,9 @@ continued*/
       expect(
         JSON5.stringify([
           {
+            sourceReferences: [
+              { filename: "test-reference-1.js", lineNumber: 80 },
+            ],
             msgid: "one:two&three",
             msgstr: "test msgstr",
           },
@@ -143,6 +146,7 @@ continued*/
       ).toEqual(
         `{
     "one&colon;two&amp;three": {
+        //: test-reference-1.js:80
         "default": "test msgstr"
     }
 }`,
@@ -153,6 +157,9 @@ continued*/
       expect(
         JSON5.stringify([
           {
+            sourceReferences: [
+              { filename: "test-reference-1.js", lineNumber: 80 },
+            ],
             msgid: "test msgid",
             msgstr: "test msgstr",
           },
@@ -160,6 +167,7 @@ continued*/
       ).toEqual(
         `{
     "test msgid": {
+        //: test-reference-1.js:80
         "default": "test msgstr"
     }
 }`,
@@ -170,6 +178,9 @@ continued*/
       expect(
         JSON5.stringify([
           {
+            sourceReferences: [
+              { filename: "test-reference-1.js", lineNumber: 80 },
+            ],
             msgid: "test msgid",
             msgidPlural: "test plural",
             msgstr: {
@@ -181,6 +192,7 @@ continued*/
       ).toEqual(
         `{
     "test msgid:test plural": {
+        //: test-reference-1.js:80
         "default": {
             "0": "test msgstr 1",
             "1": "test msgstr 2"
@@ -194,6 +206,9 @@ continued*/
       expect(
         JSON5.stringify([
           {
+            sourceReferences: [
+              { filename: "test-reference-1.js", lineNumber: 80 },
+            ],
             msgid: "test msgid",
             msgidPlural: "test plural",
             msgstr: {
@@ -205,6 +220,35 @@ continued*/
       ).toEqual(
         `{
     "test msgid:test plural": {
+        //: test-reference-1.js:80
+        "default": {
+            "0": "test msgstr 1",
+            "1": "test msgstr 2"
+        }
+    }
+}`,
+      );
+    });
+
+    it("serializes the plural form with out of order keys", () => {
+      expect(
+        JSON5.stringify([
+          {
+            sourceReferences: [
+              { filename: "test-reference-1.js", lineNumber: 80 },
+            ],
+            msgid: "test msgid",
+            msgidPlural: "test plural",
+            msgstr: {
+              "1": "test msgstr 2",
+              "0": "test msgstr 1",
+            },
+          },
+        ]),
+      ).toEqual(
+        `{
+    "test msgid:test plural": {
+        //: test-reference-1.js:80
         "default": {
             "0": "test msgstr 1",
             "1": "test msgstr 2"
@@ -258,6 +302,62 @@ continued*/
         "default": "test msgstr"
     }
 }`,
+      );
+    });
+
+    it("with unused comment", () => {
+      console.log(
+        JSON5.stringify([
+          {
+            flags: ["fuzzy"],
+            sourceReferences: [],
+            msgid: "test msgid",
+            msgstr: "test msgstr",
+          },
+        ]),
+      );
+      expect(
+        JSON5.stringify([
+          {
+            flags: ["fuzzy"],
+            sourceReferences: [],
+            msgid: "test msgid",
+            msgstr: "test msgstr",
+          },
+        ]),
+      ).toEqual(
+        `{
+    "test msgid": {
+        //, fuzzy
+        "default": "test msgstr"
+    }
+}`,
+      );
+    });
+
+    it("comments out unused translations that are not fuzzy", () => {
+      console.log(
+        JSON5.stringify([
+          {
+            msgid: "test msgid",
+            msgstr: "test msgstr",
+          },
+        ]),
+      );
+      expect(
+        JSON5.stringify([
+          {
+            sourceReferences: [],
+            msgid: "test msgid",
+            msgstr: "test msgstr",
+          },
+        ]),
+      ).toEqual(
+        `// {
+// 	"test msgid": {
+// 		"default": "test msgstr"
+// 	}
+// }`,
       );
     });
   });

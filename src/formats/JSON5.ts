@@ -143,14 +143,20 @@ function serializeValue(value: string | Record<string, string>) {
 
 function serializeEntry(entry: LocalizationItem) {
   const msgctxt = entry.msgctxt || "default";
-
-  return `{
+  const { flags = [], sourceReferences = [] } = entry;
+  const out = `{
 \t"${toKey(entry.msgid, entry.msgidPlural)}": {
 ${serializeEntryComments(entry)}\t\t"${msgctxt}": ${serializeValue(
     entry.msgstr,
   )}
 \t}
 }`;
+
+  if (!flags.includes("fuzzy") && sourceReferences.length === 0) {
+    return out.replace(/^/gm, "// ");
+  }
+
+  return out;
 }
 
 class _JSON5 {
