@@ -306,16 +306,6 @@ continued*/
     });
 
     it("with unused comment", () => {
-      console.log(
-        JSON5.stringify([
-          {
-            flags: ["fuzzy"],
-            sourceReferences: [],
-            msgid: "test msgid",
-            msgstr: "test msgstr",
-          },
-        ]),
-      );
       expect(
         JSON5.stringify([
           {
@@ -336,14 +326,6 @@ continued*/
     });
 
     it("comments out unused translations that are not fuzzy", () => {
-      console.log(
-        JSON5.stringify([
-          {
-            msgid: "test msgid",
-            msgstr: "test msgstr",
-          },
-        ]),
-      );
       expect(
         JSON5.stringify([
           {
@@ -359,6 +341,22 @@ continued*/
 // 	}
 // }`,
       );
+    });
+
+    it("can parse a commented out translation", () => {
+      expect(
+        JSON5.parse(`// {
+// 	"test msgid": {
+// 		"default": "test msgstr"
+// 	}
+// }`),
+      ).toEqual([
+        {
+          msgid: "test msgid",
+          msgctxt: "default",
+          msgstr: "test msgstr",
+        },
+      ]);
     });
   });
 });

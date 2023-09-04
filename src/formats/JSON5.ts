@@ -161,8 +161,9 @@ ${serializeEntryComments(entry)}\t\t"${msgctxt}": ${serializeValue(
 
 class _JSON5 {
   static parse(text: string) {
-    const comments = parseComments(text);
-    const localizations = JSON5.parse(text);
+    const uncommentedText = text.replace(/^\/\/ /gm, "");
+    const comments = parseComments(uncommentedText);
+    const localizations = JSON5.parse(uncommentedText);
 
     return Object.entries(localizations)
       .reduce((accumulator, [keys, contexts]) => {
