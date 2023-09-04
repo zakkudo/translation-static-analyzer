@@ -1,18 +1,22 @@
-import { LocalizationItem } from 'src/types';
+import { LocalizationItem } from "src/types";
 
-function validate(entry : unknown) : LocalizationItem {
+function validate(entry: unknown): LocalizationItem {
   const o = Object(entry);
 
-  if (!Object.hasOwnProperty.call(o, 'key')) {
-    throw new SyntaxError('Entry is missing key, ' + JSON.stringify(o, null, 4))
+  if (!Object.hasOwnProperty.call(o, "msgid")) {
+    throw new SyntaxError(
+      "Entry is missing msgid, " + JSON.stringify(o, null, 4),
+    );
   }
 
-  if (!o.value && o.value !== '') {
-    throw new SyntaxError('Entry is missing value, ' + JSON.stringify(o, null, 4))
+  if (!o.msgstr && o.msgstr !== "") {
+    throw new SyntaxError(
+      "Entry is missing msgstr, " + JSON.stringify(o, null, 4),
+    );
   }
 
-  if (Object(o.value) === o.value && !o.plural) {
-    throw new SyntaxError('Entry is plural, but has no plural key');
+  if (Object(o.msgstr) === o.msgstr && !o.msgidPlural) {
+    throw new SyntaxError("Entry is msgidPlural, but has no msgidPlural msgid");
   }
 
   return o;

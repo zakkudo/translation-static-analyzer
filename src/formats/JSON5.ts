@@ -9,13 +9,13 @@ import { type LocalizationItem } from "src/types";
 /*
    {
       "notes": "translator notes",
-      "comments": "extacted comments",
+      "developerComments": "extacted comments",
       "status": "new",
       "references": [
           "src/Application/pages/AboutPage/index.js:14"
       ],
-      "key": "About",
-      "context": "default",
+      "msgid": "About",
+      "msgctxt": "default",
       "data": ""
   }
   */
@@ -41,9 +41,9 @@ function removeCommentMarkers(text: string) {
   return text.slice(2, -2);
 }
 
-function parseComments(text: string) {
+function parseComments(text: string): Record<string, Record<string, string[]>> {
   const tokens = jju.tokenize(text).filter((t) => !isWhitespace(t));
-  let buffer = [];
+  let buffer: string[] = [];
   const comments = {};
 
   tokens.forEach((t) => {
@@ -51,10 +51,13 @@ function parseComments(text: string) {
       buffer.push(removeCommentMarkers(t.raw));
     } else if (t.type === "key") {
       if (buffer.length) {
-        const leaf = t.stack.reduce((node, key) => {
-          const subNode = (node[key] = node[key] || {});
-          return subNode;
-        }, comments);
+        const leaf = t.stack.reduce(
+          (node: Record<string, unknown>, msgid: string) => {
+            const subNode = (node[msgid] = node[msgid] || {});
+            return subNode;
+          },
+          comments,
+        ) as Record<string, unknown>;
 
         leaf[t.value] = buffer;
         buffer = [];
@@ -70,39 +73,53 @@ function parseComments(text: string) {
 /*
    {
       "notes": "translator notes",
-      "comments": "extacted comments",
+      "developerComments": "extacted comments",
       "status": "new",
       "references": [
           "src/Application/pages/AboutPage/index.js:14"
       ],
-      "key": "About",
-      "context": "default",
+      "msgid": "About",
+      "msgctxt": "default",
       "data": ""
   }
   */
 /*
 {
-  [key]: {
+  [msgid]: {
     // notes
     //. status
     //. comments
     //: references
-    [context]: value
+    [msgctxt]: value
   }
 },\n
   */
 
-const commentsMapping = [
-  ["notes", "", (entry) => entry.notes],
-  ["status", ".", (entry) => entry.status],
-  ["comments", ".", (entry) => entry.comments],
-  ["references", ":", (entry) => entry.references.join(" ")],
+type MappingTuple = [
+  keyof LocalizationItem,
+  string,
+  (entry: LocalizationItem) => string,
 ];
 
-function serializeEntryComments(entry) {
+const commentsMapping: MappingTuple[] = [
+  ["translatorComments", "", (entry) => entry.translatorComments],
+  ["status", ".", (entry) => entry.status],
+  ["developerComments", ".", (entry) => entry.developerComments],
+  [
+    "sourceReferences",
+    ":",
+    (entry) =>
+      entry.sourceReferences
+        .map(({ filename, lineNumber }) => `${filename}:${lineNumber}`)
+        .join(" "),
+  ],
+];
+
+function serializeEntryComments(entry: LocalizationItem) {
+  console.log({ entry });
   return commentsMapping
-    .reduce((accumulator, [key, prefix, normalize]) => {
-      if (entry[key]) {
+    .reduce((accumulator, [msgid, prefix, normalize]) => {
+      if (entry[msgid]) {
         return accumulator.concat(
           normalize(entry)
             .split("\n")
@@ -123,15 +140,16 @@ function stringify(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function serializeValue(value) {
+function serializeValue(value: string | Record<string, string>) {
   if (typeof value === "string") {
     return stringify(value);
   } else {
     return (
       "{\n" +
       Object.entries(value)
-        .map(([key, value]) => {
-          return `\t\t\t${stringify(key)}: ${stringify(value)}`;
+        .sort(([k1], [k2]) => k1.localeCompare(k2))
+        .map(([index, msgstr]) => {
+          return `\t\t\t${stringify(index)}: ${stringify(msgstr)}`;
         })
         .join(",\n") +
       "\n\t\t}"
@@ -140,11 +158,13 @@ function serializeValue(value) {
 }
 
 function serializeEntry(entry: LocalizationItem) {
-  const context = entry.context || "default";
+  const msgctxt = entry.msgctxt || "default";
 
   return `{
-\t"${toKey(entry.key, entry.plural)}": {
-${serializeEntryComments(entry)}\t\t"${context}": ${serializeValue(entry.value)}
+\t"${toKey(entry.msgid, entry.msgidPlural)}": {
+${serializeEntryComments(entry)}\t\t"${msgctxt}": ${serializeValue(
+    entry.msgstr,
+  )}
 \t}
 }`;
 }
@@ -157,26 +177,26 @@ class _JSON5 {
     return Object.entries(localizations)
       .reduce((accumulator, [keys, contexts]) => {
         return accumulator.concat(
-          Object.entries(contexts).map(([context, value]) => {
-            const [key, plural] = fromKey(keys);
-            const out: LocalizationItem = {
-              key,
-              context,
-              value,
+          Object.entries(contexts).map(([msgctxt, msgstr]) => {
+            const [msgid, msgidPlural] = fromKey(keys);
+            const out: Partial<LocalizationItem> = {
+              msgid,
+              msgctxt,
+              msgstr,
             };
 
-            if (plural) {
-              out.plural = plural;
+            if (msgidPlural) {
+              out.msgidPlural = msgidPlural;
             }
 
-            if (comments[keys] && comments[keys][context]) {
-              comments[keys][context].forEach((c) => {
+            if (comments[keys] && comments[keys][msgctxt]) {
+              comments[keys][msgctxt].forEach((c) => {
                 if (c.startsWith(" ")) {
-                  out.notes = out.notes || "";
-                  out.notes += c.slice(1);
+                  out.translatorComments = out.translatorComments || "";
+                  out.translatorComments += c.slice(1);
                 } else if (c.startsWith(". ")) {
-                  out.comments = out.comments || "";
-                  out.comments += c.slice(2);
+                  out.developerComments = out.developerComments || "";
+                  out.developerComments += c.slice(2);
                 }
               });
             }

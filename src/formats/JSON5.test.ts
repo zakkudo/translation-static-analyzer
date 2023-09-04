@@ -1,202 +1,246 @@
-import JSON5 from './JSON5';
+import JSON5 from "./JSON5";
 
-describe('formats/JSON5', () => {
-  describe('parse', () => {
-    it('unescapes escaped characters', () => {
-      expect(JSON5.parse(
-`{
+describe("formats/JSON5", () => {
+  describe("parse", () => {
+    it("unescapes escaped characters", () => {
+      expect(
+        JSON5.parse(
+          `{
   "one&colon;two&amp;three": {
     // Notes
-    //. Test comments
+    //. Test developerComments
     //, src/Application/index.js:40
     "default": "localized about",
   }
-}`
-      )).toEqual([{
-        comments: 'Test comments',
-        context: 'default',
-        key: 'one:two&three',
-        notes: 'Notes',
-        value: 'localized about'
-      }]);
+}`,
+        ),
+      ).toEqual([
+        {
+          developerComments: "Test developerComments",
+          msgctxt: "default",
+          msgid: "one:two&three",
+          translatorComments: "Notes",
+          msgstr: "localized about",
+        },
+      ]);
     });
 
-    it('parses singlular form', () => {
-      expect(JSON5.parse(
-`{
+    it("parses singlular form", () => {
+      expect(
+        JSON5.parse(
+          `{
   "about": {
     // Notes
-    //. Test comments
+    //. Test developerComments
     //, src/Application/index.js:40
     "default": "localized about",
   }
-}`
-      )).toEqual([{
-        comments: 'Test comments',
-        context: 'default',
-        key: 'about',
-        notes: 'Notes',
-        value: 'localized about'
-      }]);
+}`,
+        ),
+      ).toEqual([
+        {
+          developerComments: "Test developerComments",
+          msgctxt: "default",
+          msgid: "about",
+          translatorComments: "Notes",
+          msgstr: "localized about",
+        },
+      ]);
     });
 
-    it('parses block comments', () => {
-      expect(JSON5.parse(
-`{
+    it("parses block developerComments", () => {
+      expect(
+        JSON5.parse(
+          `{
   "about": {
     /* Notes
 continued*/
-    //. Test comments
+    //. Test developerComments
     //, src/Application/index.js:40
     "default": "localized about",
   }
-}`
-      )).toEqual([{
-        comments: 'Test comments',
-        context: 'default',
-        key: 'about',
-        notes: 'Notes\ncontinued',
-        value: 'localized about'
-      }]);
+}`,
+        ),
+      ).toEqual([
+        {
+          developerComments: "Test developerComments",
+          msgctxt: "default",
+          msgid: "about",
+          translatorComments: "Notes\ncontinued",
+          msgstr: "localized about",
+        },
+      ]);
     });
 
-    it('simple form', () => {
-      expect(JSON5.parse(
-`{
+    it("simple form", () => {
+      expect(
+        JSON5.parse(
+          `{
   "about": {
     "default": "localized about",
   }
-}`
-      )).toEqual([{
-        context: 'default',
-        key: 'about',
-        value: 'localized about'
-      }]);
+}`,
+        ),
+      ).toEqual([
+        {
+          msgctxt: "default",
+          msgid: "about",
+          msgstr: "localized about",
+        },
+      ]);
     });
 
-    it('with context', () => {
-      expect(JSON5.parse(
-`{
+    it("with msgctxt", () => {
+      expect(
+        JSON5.parse(
+          `{
   "about": {
-    "test context": "localized about",
+    "test msgctxt": "localized about",
   }
-}`
-      )).toEqual([{
-        context: 'test context',
-        key: 'about',
-        value: 'localized about'
-      }]);
+}`,
+        ),
+      ).toEqual([
+        {
+          msgctxt: "test msgctxt",
+          msgid: "about",
+          msgstr: "localized about",
+        },
+      ]);
     });
 
-    it('parses plural', () => {
-      expect(JSON5.parse(
-`{
-  "test key:test plural": {
-    "test context": {"1": "localized singular", "2": "localized plural"}
+    it("parses plural", () => {
+      expect(
+        JSON5.parse(
+          `{
+  "test msgid:test plural": {
+    "test msgctxt": {"1": "localized singular", "2": "localized plural"}
   }
-}`
-      )).toEqual([{
-        context: 'test context',
-        key: 'test key',
-        plural: 'test plural',
-        value: {
-          "1": 'localized singular',
-          "2": 'localized plural',
-        }
-      }]);
+}`,
+        ),
+      ).toEqual([
+        {
+          msgctxt: "test msgctxt",
+          msgid: "test msgid",
+          msgidPlural: "test plural",
+          msgstr: {
+            "1": "localized singular",
+            "2": "localized plural",
+          },
+        },
+      ]);
     });
   });
 
-  describe('stringify', () => {
-    it('escapes special characters', () => {
-      expect(JSON5.stringify([{
-        key: 'one:two&three',
-        value: 'test value'
-      }])).toEqual(
-`{
+  describe("stringify", () => {
+    it("escapes special characters", () => {
+      expect(
+        JSON5.stringify([
+          {
+            msgid: "one:two&three",
+            msgstr: "test msgstr",
+          },
+        ]),
+      ).toEqual(
+        `{
     "one&colon;two&amp;three": {
-        "default": "test value"
+        "default": "test msgstr"
     }
-}`
-);
+}`,
+      );
     });
 
-    it('serializes the singular form', () => {
-      expect(JSON5.stringify([{
-        key: 'test key',
-        value: 'test value'
-      }])).toEqual(
-`{
-    "test key": {
-        "default": "test value"
+    it("serializes the singular form", () => {
+      expect(
+        JSON5.stringify([
+          {
+            msgid: "test msgid",
+            msgstr: "test msgstr",
+          },
+        ]),
+      ).toEqual(
+        `{
+    "test msgid": {
+        "default": "test msgstr"
     }
-}`
-);
+}`,
+      );
     });
 
-    it('serializes the plural form using string keys', () => {
-      expect(JSON5.stringify([{
-        key: 'test key',
-        plural: 'test plural',
-        value: {
-          '0': 'test value 1',
-          '1': 'test value 2',
-        }
-      }])).toEqual(
-`{
-    "test key:test plural": {
+    it("serializes the plural form using string keys", () => {
+      expect(
+        JSON5.stringify([
+          {
+            msgid: "test msgid",
+            msgidPlural: "test plural",
+            msgstr: {
+              "0": "test msgstr 1",
+              "1": "test msgstr 2",
+            },
+          },
+        ]),
+      ).toEqual(
+        `{
+    "test msgid:test plural": {
         "default": {
-            "0": "test value 1",
-            "1": "test value 2"
+            "0": "test msgstr 1",
+            "1": "test msgstr 2"
         }
     }
-}`
-);
+}`,
+      );
     });
 
-    it('serializes the plural form using integer keys', () => {
-      expect(JSON5.stringify([{
-        key: 'test key',
-        plural: 'test plural',
-        value: {
-          0: 'test value 1',
-          1: 'test value 2',
-        }
-      }])).toEqual(
-`{
-    "test key:test plural": {
+    it("serializes the plural form using integer keys", () => {
+      expect(
+        JSON5.stringify([
+          {
+            msgid: "test msgid",
+            msgidPlural: "test plural",
+            msgstr: {
+              0: "test msgstr 1",
+              1: "test msgstr 2",
+            },
+          },
+        ]),
+      ).toEqual(
+        `{
+    "test msgid:test plural": {
         "default": {
-            "0": "test value 1",
-            "1": "test value 2"
+            "0": "test msgstr 1",
+            "1": "test msgstr 2"
         }
     }
-}`
-);
+}`,
+      );
     });
 
-    it('with extra metadata', () => {
-      expect(JSON5.stringify([{
-        comments: 'test comments',
-        notes: 'test notes',
-        status: 'NEW',
-        references: [
-          'test-reference-1.js:80',
-          'test-reference-2.js:234',
-        ],
-        context: 'default',
-        key: 'test key',
-        value: 'test value',
-      }])).toEqual(
-`{
-    "test key": {
-        // test notes
+    it("with extra metadata", () => {
+      expect(
+        JSON5.stringify([
+          {
+            developerComments: "test developerComments",
+            translatorComments: "test translatorComments",
+            status: "NEW",
+            sourceReferences: [
+              { filename: "test-reference-1.js", lineNumber: 80 },
+              { filename: "test-reference-2.js", lineNumber: 234 },
+            ],
+            msgctxt: "default",
+            msgid: "test msgid",
+            msgstr: "test msgstr",
+          },
+        ]),
+      ).toEqual(
+        `{
+    "test msgid": {
+        // test translatorComments
         //. NEW
-        //. test comments
+        //. test developerComments
         //: test-reference-1.js:80 test-reference-2.js:234
-        "default": "test value"
+        "default": "test msgstr"
     }
-}`
-);
+}`,
+      );
     });
   });
 });
