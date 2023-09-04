@@ -1,22 +1,26 @@
+import console from "node:console";
+import { ValidationError } from "src/errors";
 import { LocalizationItem } from "src/types";
 
 function validate(entry: unknown): LocalizationItem {
   const o = Object(entry);
 
   if (!Object.hasOwnProperty.call(o, "msgid")) {
-    throw new SyntaxError(
-      "Entry is missing msgid, " + JSON.stringify(o, null, 4),
-    );
+    console.error(o);
+    throw new ValidationError("Entry is missing msgid", o);
   }
 
   if (!o.msgstr && o.msgstr !== "") {
-    throw new SyntaxError(
-      "Entry is missing msgstr, " + JSON.stringify(o, null, 4),
-    );
+    console.error(o);
+    throw new ValidationError("Entry is missing msgstr", o);
   }
 
   if (Object(o.msgstr) === o.msgstr && !o.msgidPlural) {
-    throw new SyntaxError("Entry is msgidPlural, but has no msgidPlural msgid");
+    console.error(o);
+    throw new ValidationError(
+      "Entry is msgidPlural, but has no msgidPlural msgid",
+      o,
+    );
   }
 
   return o;

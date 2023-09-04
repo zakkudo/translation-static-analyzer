@@ -1,10 +1,10 @@
-import toKey from "src/toKey";
-import fromKey from "src/fromKey";
-import validate from "src/validate";
-import JSON5 from "json5";
 import jju from "jju";
 import { type Token } from "jju";
+import JSON5 from "json5";
+import fromKey from "src/fromKey";
+import toKey from "src/toKey";
 import { type LocalizationItem } from "src/types";
+import validate from "src/validate";
 
 /*
   #  translator-comments
@@ -160,7 +160,7 @@ ${serializeEntryComments(entry)}\t\t"${msgctxt}": ${serializeValue(
   return out;
 }
 
-class _JSON5 {
+class JSON5Format {
   static parse(text: string) {
     const uncommentedText = text.replace(/^\/\/ /gm, "");
     const comments = parseComments(uncommentedText);
@@ -172,8 +172,8 @@ class _JSON5 {
           Object.entries(contexts).map(([msgctxt, msgstr]) => {
             const [msgid, msgidPlural] = fromKey(keys);
             const out: Partial<LocalizationItem> = {
-              msgid,
               msgctxt,
+              msgid,
               msgstr,
             };
 
@@ -219,4 +219,4 @@ class _JSON5 {
   }
 }
 
-export default _JSON5;
+export default JSON5Format;

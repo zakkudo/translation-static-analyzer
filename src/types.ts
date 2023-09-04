@@ -44,34 +44,33 @@ msgstr "Wir werden Sie durch die App führen\n"
 
 type LocalizationItemSingular = {
   developerComments?: string;
-  flags: string[];
-  msgctxt: string;
-  msgid?: string;
+  flags?: string[];
+  msgctxt?: string;
+  msgid: string;
   msgidPlural?: undefined;
-  msgstr: string;
+  msgstr?: string;
   previous?: {
     msgid?: string;
     msgctxt?: string;
   };
-  sourceReferences: { filename: string; lineNumber: number }[];
+  sourceReferences?: { filename: string; lineNumber: number }[];
   translatorComments?: string;
 };
 
 type LocalizationItemPlural = {
   developerComments?: string;
-  flags: string[];
-  msgctxt: string;
-  msgid?: string;
+  flags?: string[];
+  msgctxt?: string;
+  msgid: string;
   msgidPlural: string;
   previous?: {
     msgid?: string;
     msgctxt?: string;
     msgidPlural?: string;
   };
-  msgstr: Record<string, string>;
-  sourceReferences: { filename: string; lineNumber: number }[];
+  msgstr?: Record<string, string>;
+  sourceReferences?: { filename: string; lineNumber: number }[];
   translatorComments?: string;
-  status?: "existing" | "unused" | "new";
 };
 
 export type LocalizationItem =

@@ -9,13 +9,12 @@ module.exports = {
         debug: process.env.NODE_ENV === "build",
         targets: {
           browsers: ["last 1 version", "> 1%", "not dead"],
-          node: "6",
+          node: "20",
         },
       },
     ],
   ],
   plugins: [
-    ["@babel/transform-runtime", { corejs: 2 }],
     "transform-undefined-to-void",
     ["transform-define", { __VERSION__: packageConfig.version }],
   ],

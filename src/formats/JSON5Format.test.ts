@@ -1,10 +1,10 @@
-import JSON5 from "./JSON5";
+import JSON5Format from "./JSON5Format";
 
-describe("formats/JSON5", () => {
+describe("formats/JSON5Format", () => {
   describe("parse", () => {
     it("unescapes escaped characters", () => {
       expect(
-        JSON5.parse(
+        JSON5Format.parse(
           `{
   "one&colon;two&amp;three": {
     // Notes
@@ -19,15 +19,15 @@ describe("formats/JSON5", () => {
           developerComments: "Test developerComments",
           msgctxt: "default",
           msgid: "one:two&three",
-          translatorComments: "Notes",
           msgstr: "localized about",
+          translatorComments: "Notes",
         },
       ]);
     });
 
     it("parses singlular form", () => {
       expect(
-        JSON5.parse(
+        JSON5Format.parse(
           `{
   "about": {
     // Notes
@@ -42,15 +42,15 @@ describe("formats/JSON5", () => {
           developerComments: "Test developerComments",
           msgctxt: "default",
           msgid: "about",
-          translatorComments: "Notes",
           msgstr: "localized about",
+          translatorComments: "Notes",
         },
       ]);
     });
 
     it("parses block developerComments", () => {
       expect(
-        JSON5.parse(
+        JSON5Format.parse(
           `{
   "about": {
     /* Notes
@@ -66,15 +66,15 @@ continued*/
           developerComments: "Test developerComments",
           msgctxt: "default",
           msgid: "about",
-          translatorComments: "Notes\ncontinued",
           msgstr: "localized about",
+          translatorComments: "Notes\ncontinued",
         },
       ]);
     });
 
     it("simple form", () => {
       expect(
-        JSON5.parse(
+        JSON5Format.parse(
           `{
   "about": {
     "default": "localized about",
@@ -92,7 +92,7 @@ continued*/
 
     it("with msgctxt", () => {
       expect(
-        JSON5.parse(
+        JSON5Format.parse(
           `{
   "about": {
     "test msgctxt": "localized about",
@@ -110,7 +110,7 @@ continued*/
 
     it("parses plural", () => {
       expect(
-        JSON5.parse(
+        JSON5Format.parse(
           `{
   "test msgid:test plural": {
     "test msgctxt": {"1": "localized singular", "2": "localized plural"}
@@ -134,13 +134,13 @@ continued*/
   describe("stringify", () => {
     it("escapes special characters", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
+            msgid: "one:two&three",
+            msgstr: "test msgstr",
             sourceReferences: [
               { filename: "test-reference-1.js", lineNumber: 80 },
             ],
-            msgid: "one:two&three",
-            msgstr: "test msgstr",
           },
         ]),
       ).toEqual(
@@ -155,13 +155,13 @@ continued*/
 
     it("serializes the singular form", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
+            msgid: "test msgid",
+            msgstr: "test msgstr",
             sourceReferences: [
               { filename: "test-reference-1.js", lineNumber: 80 },
             ],
-            msgid: "test msgid",
-            msgstr: "test msgstr",
           },
         ]),
       ).toEqual(
@@ -176,17 +176,17 @@ continued*/
 
     it("serializes the plural form using string keys", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
-            sourceReferences: [
-              { filename: "test-reference-1.js", lineNumber: 80 },
-            ],
             msgid: "test msgid",
             msgidPlural: "test plural",
             msgstr: {
               "0": "test msgstr 1",
               "1": "test msgstr 2",
             },
+            sourceReferences: [
+              { filename: "test-reference-1.js", lineNumber: 80 },
+            ],
           },
         ]),
       ).toEqual(
@@ -204,17 +204,17 @@ continued*/
 
     it("serializes the plural form using integer keys", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
-            sourceReferences: [
-              { filename: "test-reference-1.js", lineNumber: 80 },
-            ],
             msgid: "test msgid",
             msgidPlural: "test plural",
             msgstr: {
               0: "test msgstr 1",
               1: "test msgstr 2",
             },
+            sourceReferences: [
+              { filename: "test-reference-1.js", lineNumber: 80 },
+            ],
           },
         ]),
       ).toEqual(
@@ -232,17 +232,17 @@ continued*/
 
     it("serializes the plural form with out of order keys", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
-            sourceReferences: [
-              { filename: "test-reference-1.js", lineNumber: 80 },
-            ],
             msgid: "test msgid",
             msgidPlural: "test plural",
             msgstr: {
-              "1": "test msgstr 2",
               "0": "test msgstr 1",
+              "1": "test msgstr 2",
             },
+            sourceReferences: [
+              { filename: "test-reference-1.js", lineNumber: 80 },
+            ],
           },
         ]),
       ).toEqual(
@@ -260,17 +260,17 @@ continued*/
 
     it("with extra metadata", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
             developerComments: "test developerComments",
-            translatorComments: "test translatorComments",
+            msgctxt: "default",
+            msgid: "test msgid",
+            msgstr: "test msgstr",
             sourceReferences: [
               { filename: "test-reference-1.js", lineNumber: 80 },
               { filename: "test-reference-2.js", lineNumber: 234 },
             ],
-            msgctxt: "default",
-            msgid: "test msgid",
-            msgstr: "test msgstr",
+            translatorComments: "test translatorComments",
           },
         ]),
       ).toEqual(
@@ -287,12 +287,12 @@ continued*/
 
     it("with fuzzy", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
             flags: ["fuzzy"],
-            sourceReferences: [],
             msgid: "test msgid",
             msgstr: "test msgstr",
+            sourceReferences: [],
           },
         ]),
       ).toEqual(
@@ -307,15 +307,15 @@ continued*/
 
     it("will serialize previous msgid and msgctxt", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
-            sourceReferences: [{ filename: "a.js", lineNumber: 30 }],
-            previous: {
-              msgid: "test previous msgid",
-              msgctxt: "test previous msgctxt",
-            },
             msgid: "test msgid",
             msgstr: "test msgstr",
+            previous: {
+              msgctxt: "test previous msgctxt",
+              msgid: "test previous msgid",
+            },
+            sourceReferences: [{ filename: "a.js", lineNumber: 30 }],
           },
         ]),
       ).toEqual(
@@ -332,7 +332,7 @@ continued*/
 
     it("will parse previous msgid and msgctxt", () => {
       expect(
-        JSON5.parse(`{
+        JSON5Format.parse(`{
     "test msgid": {
         //| msgid test previous msgid
         //| msgctxt test previous msgctxt
@@ -342,25 +342,25 @@ continued*/
 }`),
       ).toEqual([
         {
-          previous: {
-            msgid: "test previous msgid",
-            msgctxt: "test previous msgctxt",
-          },
           msgctxt: "default",
           msgid: "test msgid",
           msgstr: "test msgstr",
+          previous: {
+            msgctxt: "test previous msgctxt",
+            msgid: "test previous msgid",
+          },
         },
       ]);
     });
 
     it("with unused comment", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
             flags: ["fuzzy"],
-            sourceReferences: [],
             msgid: "test msgid",
             msgstr: "test msgstr",
+            sourceReferences: [],
           },
         ]),
       ).toEqual(
@@ -375,11 +375,11 @@ continued*/
 
     it("comments out unused translations that are not fuzzy", () => {
       expect(
-        JSON5.stringify([
+        JSON5Format.stringify([
           {
-            sourceReferences: [],
             msgid: "test msgid",
             msgstr: "test msgstr",
+            sourceReferences: [],
           },
         ]),
       ).toEqual(
@@ -393,15 +393,15 @@ continued*/
 
     it("can parse a commented out translation", () => {
       expect(
-        JSON5.parse(`// {
+        JSON5Format.parse(`// {
 // 	"test msgid": {
 // 		"default": "test msgstr"
 // 	}
 // }`),
       ).toEqual([
         {
-          msgid: "test msgid",
           msgctxt: "default",
+          msgid: "test msgid",
           msgstr: "test msgstr",
         },
       ]);
