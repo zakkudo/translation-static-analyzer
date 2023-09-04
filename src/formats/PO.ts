@@ -43,7 +43,7 @@ const patterns = [
   /* Extracted comments */
   /^(#\.) (.+)$/,
   /* flag */
-  /^(#,) (,+)$/,
+  /^(#,) (.+)$/,
   /* reference */
   /^(#:) (.+)$/,
   /^(msgctxt) "(.*)"$/,
@@ -54,10 +54,17 @@ const patterns = [
   /^"(.*)"$/,
 ];
 
+type ReaderData = Partial<{
+  msgstr: string;
+  msgid_plural: string;
+  msgid: string;
+  "#.": string;
+}>;
+
 class Reader {
-  previousKey: keyof LocalizationItem | undefined;
+  previousKey: keyof ReaderData | undefined;
   previousIndex: number | undefined;
-  data: Partial<LocalizationItem> | undefined;
+  data: ReaderData | undefined;
 
   readLine(line: string) {
     patterns.some((p) => {
@@ -67,7 +74,7 @@ class Reader {
         delete this.data;
       }
 
-      const data: Partial<LocalizationItem> = (this.data = this.data || {});
+      const data: ReaderData = (this.data = this.data || {});
 
       //Blank line, entry end
       if (line === "") {
@@ -76,34 +83,36 @@ class Reader {
         return true;
         //Continuing line start
       } else if (matches.length === 1) {
-        const msgstr = matches[0];
+        const value = matches[0];
 
         if (Object(data[this.previousKey]) === data[this.previousKey]) {
-          data[this.previousKey][this.previousIndex] += msgstr;
+          data[this.previousKey][this.previousIndex] += value;
         } else if (typeof data[this.previousKey] === "string") {
-          data[this.previousKey] += msgstr;
+          data[this.previousKey] += value;
         }
         return true;
         //Singular form start
       } else if (matches.length === 2) {
-        const msgid = (this.previousKey = matches[0]);
-        const msgstr = matches[1];
+        const key = (this.previousKey = matches[0]);
+        const value = matches[1];
 
-        data[msgid] = msgstr;
+        data[key] = value;
         return true;
         //Plural form start
       } else if (matches.length == 3) {
-        const msgid = (this.previousKey = matches[0]);
+        const key = (this.previousKey = matches[0]);
         const index = (this.previousIndex = matches[1]);
-        const msgstr = matches[2];
-        const list = (data[msgid] = this.data[msgid] || {});
+        const value = matches[2];
+        const list = (data[key] = this.data[key] || {});
 
-        list[index] = msgstr;
+        list[index] = value;
         return true;
       }
 
       return false;
     });
+
+    console.log(this.data);
 
     return Boolean(this.previousKey);
   }
@@ -129,18 +138,21 @@ class PO {
           !reader.readLine(line) ||
           (line !== "" && index + 1 === lines.length)
         ) {
-          const entry = {};
+          const entry: Partial<LocalizationItem> = {};
           let hasContent = false;
 
           Object.entries({
             translatorComments: "#",
-            extractedComments: "#.",
+            developerComments: "#.",
             msgid: "msgid",
             msgidPlural: "msgid_plural",
             msgctxt: "msgctxt",
             msgstr: "msgstr",
           }).forEach(
-            ([internalKey, poKey]: [keyof LocalizationItem, string]) => {
+            ([internalKey, poKey]: [
+              keyof LocalizationItem,
+              keyof ReaderData,
+            ]) => {
               if (reader.data[poKey] !== undefined) {
                 hasContent = true;
                 const msgstr = reader.data[poKey];
@@ -174,18 +186,16 @@ class PO {
     return data
       .map((d) => {
         let accumulator = "";
-        const prefix = d.status === "unused" ? unusedPrefix : "";
+        const { sourceReferences = [] } = d;
+        const unused = sourceReferences.length === 0 ? true : false;
+        const prefix = unused ? unusedPrefix : "";
 
         if (d.translatorComments) {
           accumulator += `${prefix}# ${d.translatorComments}\n`;
         }
 
-        if (d.status && !["existing", "unused"].includes(d.status)) {
-          accumulator += `#. ${d.status.toUpperCase()}\n`;
-        }
-
-        if (d.extractedComments) {
-          accumulator += `#. ${d.extractedComments}\n`;
+        if (d.developerComments) {
+          accumulator += `#. ${d.developerComments}\n`;
         }
 
         if (d.sourceReferences && d.sourceReferences.length) {
