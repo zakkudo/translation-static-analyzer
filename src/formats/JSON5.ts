@@ -7,24 +7,12 @@ import { type Token } from "jju";
 import { type LocalizationItem } from "src/types";
 
 /*
-   {
-      "notes": "translator notes",
-      "developerComments": "extacted comments",
-      "status": "new",
-      "references": [
-          "src/Application/pages/AboutPage/index.js:14"
-      ],
-      "msgid": "About",
-      "msgctxt": "default",
-      "data": ""
-  }
-  */
-/*
   #  translator-comments
   #. extracted-comments
   #: reference…
   #, flag…
   #| msgid previous-untranslated-string
+  #| msgctxt previous-untranslated-string
   msgid untranslated-string
   msgstr translated-string
   */
@@ -70,31 +58,6 @@ function parseComments(text: string): Record<string, Record<string, string[]>> {
   return comments;
 }
 
-/*
-   {
-      "notes": "translator notes",
-      "developerComments": "extacted comments",
-      "status": "new",
-      "references": [
-          "src/Application/pages/AboutPage/index.js:14"
-      ],
-      "msgid": "About",
-      "msgctxt": "default",
-      "data": ""
-  }
-  */
-/*
-{
-  [msgid]: {
-    // notes
-    //. status
-    //. comments
-    //: references
-    [msgctxt]: value
-  }
-},\n
-  */
-
 type MappingTuple = [
   keyof LocalizationItem,
   string,
@@ -103,7 +66,23 @@ type MappingTuple = [
 
 const commentsMapping: MappingTuple[] = [
   ["translatorComments", "", (entry) => entry.translatorComments],
-  ["status", ".", (entry) => entry.status],
+  ["flags", ",", (entry) => entry.flags.join(" ")],
+  [
+    "previous",
+    "|",
+    (entry) => {
+      const out: string[] = [];
+
+      if (entry.previous.msgid) {
+        out.push(`msgid ${entry.previous.msgid}`);
+      }
+      if (entry.previous.msgctxt) {
+        out.push(`msgid ${entry.previous.msgctxt}`);
+      }
+
+      return out.join("\n");
+    },
+  ],
   ["developerComments", ".", (entry) => entry.developerComments],
   [
     "sourceReferences",
@@ -116,18 +95,23 @@ const commentsMapping: MappingTuple[] = [
 ];
 
 function serializeEntryComments(entry: LocalizationItem) {
-  console.log({ entry });
   return commentsMapping
     .reduce((accumulator, [msgid, prefix, normalize]) => {
       if (entry[msgid]) {
-        return accumulator.concat(
-          normalize(entry)
-            .split("\n")
-            .map((line) => {
-              return `\t\t//${prefix} ${line}`;
-            })
-            .join("\n"),
-        );
+        const out = normalize(entry);
+
+        if (out) {
+          return accumulator.concat(
+            normalize(entry)
+              .split("\n")
+              .map((line) => {
+                return `\t\t//${prefix} ${line}`;
+              })
+              .join("\n"),
+          );
+        }
+
+        return accumulator;
       }
 
       return accumulator;

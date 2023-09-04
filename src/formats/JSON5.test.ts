@@ -220,7 +220,6 @@ continued*/
           {
             developerComments: "test developerComments",
             translatorComments: "test translatorComments",
-            status: "NEW",
             sourceReferences: [
               { filename: "test-reference-1.js", lineNumber: 80 },
               { filename: "test-reference-2.js", lineNumber: 234 },
@@ -234,9 +233,28 @@ continued*/
         `{
     "test msgid": {
         // test translatorComments
-        //. NEW
         //. test developerComments
         //: test-reference-1.js:80 test-reference-2.js:234
+        "default": "test msgstr"
+    }
+}`,
+      );
+    });
+
+    it("with fuzzy", () => {
+      expect(
+        JSON5.stringify([
+          {
+            flags: ["fuzzy"],
+            sourceReferences: [],
+            msgid: "test msgid",
+            msgstr: "test msgstr",
+          },
+        ]),
+      ).toEqual(
+        `{
+    "test msgid": {
+        //, fuzzy
         "default": "test msgstr"
     }
 }`,
