@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import { ValidationError } from "../errors";
 import POFormat from "./POFormat";
 
@@ -19,6 +20,28 @@ msgstr ""
           msgid: "Unknown system error",
           msgstr:
             "<b>Tip</b><br/>Some non-Meade telescopes support a subset of the LX200 command set. Select <tt>LX200 Basic</tt> to control such devices.",
+          sourceReferences: [
+            {
+              filename: "lib/error.c",
+              lineNumber: 116,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it("parses a double quote", () => {
+      expect(
+        POFormat.parse(`
+msgid "\\""
+msgctxt "\\""
+msgstr "\\""
+`),
+      ).toEqual([
+        {
+          msgctxt: '"',
+          msgid: '"',
+          msgstr: '"',
         },
       ]);
     });
@@ -418,6 +441,21 @@ msgid "test message"
 msgstr "localized\\\\n"
 `,
       );
+    });
+
+    it("serializes a double quote", () => {
+      expect(
+        POFormat.stringify([
+          {
+            msgctxt: '"',
+            msgid: '"',
+            msgstr: '"',
+          },
+        ]),
+      ).toEqual(`#~ msgctxt "\\""
+#~ msgid "\\""
+#~ msgstr "\\""
+`);
     });
   });
 });

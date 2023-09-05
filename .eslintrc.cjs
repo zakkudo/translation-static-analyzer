@@ -5,8 +5,9 @@ module.exports = {
     "plugin:node/recommended",
     "eslint:recommended",
     "plugin:json/recommended",
+    "plugin:sort/recommended",
   ],
-  plugins: ["node", "json"],
+  plugins: ["node", "json", "sort"],
   env: {
     es2021: true,
     jest: true,

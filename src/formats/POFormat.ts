@@ -17,21 +17,6 @@ type LocalizationBuffer = Partial<{
   translatorComments: string;
 }>;
 
-//http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html
-/*
- {
-    "notes": "translator notes",
-    "comments": "extacted comments",
-    "status": "new",
-    "references": [
-        "src/Application/pages/AboutPage/index.js:14"
-    ],
-    "key": "About",
-    "context": "default",
-    "msgstr": ""
-}
-*/
-
 /*
   #  translator-comments
   #. extracted-comments
@@ -50,6 +35,10 @@ const unusedPattern = /^#~ /;
  * @private
  */
 function removeUnusedComment(line: string): string {
+  console.log(
+    JSON.stringify(line),
+    JSON.stringify(line.replace(unusedPattern, "")),
+  );
   return line.replace(unusedPattern, "");
 }
 
@@ -76,26 +65,27 @@ class Reader {
   data: LocalizationBuffer | undefined;
 
   readLine(line: string) {
-    /* Translator comments */
-    let match;
-
-    this.data = this.data || {};
+    let match: ReturnType<typeof String.prototype.match> | null = null;
+    const data = (this.data = this.data || {});
 
     if ((match = line.match(patterns.translatorComments)) !== null) {
       const [, , value] = match;
-      this.data.translatorComments = breakLines(value);
+      data.translatorComments = breakLines(value);
       this.previousKey = "translatorComments";
+      return true;
     } else if ((match = line.match(patterns.developerComments)) !== null) {
       const [, , value] = match;
-      this.data.developerComments = breakLines(value);
+      data.developerComments = breakLines(value);
       this.previousKey = "developerComments";
+      return true;
     } else if ((match = line.match(patterns.flags)) !== null) {
       const [, , value] = match;
-      this.data.flags = value.split(" ");
+      data.flags = value.split(" ");
       this.previousKey = "flags";
+      return true;
     } else if ((match = line.match(patterns.sourceReferences)) !== null) {
       const [, , value] = match;
-      this.data.sourceReferences = value.split(" ").map((l) => {
+      data.sourceReferences = value.split(" ").map((l) => {
         const [filename, lineNumber] = l.split(":");
 
         return {
@@ -104,31 +94,31 @@ class Reader {
         };
       });
       this.previousKey = "sourceReferences";
+      return true;
     } else if ((match = line.match(patterns.msgctxt)) !== null) {
       const [, , value] = match;
-      this.data.msgctxt = breakLines(value);
+      data.msgctxt = breakLines(value);
       this.previousKey = "msgctxt";
       return true;
     } else if ((match = line.match(patterns.msgid)) !== null) {
       const [, , value] = match;
-      this.data.msgid = breakLines(value);
+      data.msgid = breakLines(value);
       this.previousKey = "msgid";
       return true;
     } else if ((match = line.match(patterns.msgidPlural)) !== null) {
       const [, , value] = match;
-      this.data.msgidPlural = breakLines(value);
+      data.msgidPlural = breakLines(value);
       this.previousKey = "msgidPlural";
       return true;
     } else if ((match = line.match(patterns.msgstr)) !== null) {
       const [, , value] = match;
-      console.log({ value });
-      (this.data.msgstr as string) = breakLines(value);
+      (data.msgstr as string) = breakLines(value);
       this.previousKey = "msgstr";
       return true;
     } else if ((match = line.match(patterns.msgstrPlural)) !== null) {
       const [, , index, value] = match;
-      this.data.msgstrPlural = this.data.msgstrPlural || {};
-      this.data.msgstrPlural[index] = breakLines(value);
+      data.msgstrPlural = data.msgstrPlural || {};
+      data.msgstrPlural[index] = breakLines(value);
       this.previousKey = "msgstrPlural";
       this.previousIndex = index;
       return true;
@@ -138,21 +128,21 @@ class Reader {
         this.previousKey !== undefined
       ) {
         const [, value] = match;
-        this.data.msgstrPlural[this.previousIndex] += breakLines(value);
+        data.msgstrPlural[this.previousIndex] += breakLines(value);
       } else if (this.previousKey) {
         const [, value] = match;
         switch (this.previousKey) {
           case "msgid":
-            this.data.msgid += breakLines(value);
+            data.msgid += breakLines(value);
             break;
           case "msgidPlural":
-            this.data.msgidPlural += breakLines(value);
+            data.msgidPlural += breakLines(value);
             break;
           case "msgstr":
-            this.data.msgstr += breakLines(value);
+            data.msgstr += breakLines(value);
             break;
           case "msgctxt":
-            this.data.msgctxt += breakLines(value);
+            data.msgctxt += breakLines(value);
             break;
         }
       }
@@ -164,13 +154,37 @@ class Reader {
 }
 
 const breakLines = (text: string): string => {
-  return text.replace(new RegExp("\\\\n", "gm"), "\n");
+  return JSON.parse(`"${text}"`);
 };
 
-const unbreakLines = (text: string): string => {
-  const lines = text.split("\n").map((t) => JSON.stringify(t).slice(1, -1));
+const unbreakLines = (tag: string, text: string): string => {
+  let tagLength = tag.length;
+  const maxLength = 80;
 
-  return `"${lines.join('\\n"\n"')}"`;
+  const serialized = JSON.stringify(text).slice(1, -1);
+  const out: string[] = [];
+
+  serialized.split("\\n").forEach((s, index, list) => {
+    let buffer = s;
+
+    if (index < list.length - 1) {
+      buffer += "\\n";
+    }
+
+    while (buffer.length > 0) {
+      const before = buffer.slice(0, maxLength - tagLength);
+      buffer = buffer.slice(maxLength - tagLength, -1);
+      tagLength = 0;
+      out.push(`"${before}"`);
+    }
+    console.log("unbreaklines", out.join("\n"));
+  });
+
+  if (out.length > 0) {
+    return out.join("\n");
+  }
+
+  return JSON.stringify("");
 };
 
 const push = (
@@ -202,8 +216,6 @@ const push = (
     };
   }
 
-  console.log({ out });
-
   Object.entries(out).forEach(
     ([key, value]: [keyof LocalizationItem, unknown]) => {
       if (value === undefined) {
@@ -221,18 +233,31 @@ class POFormat {
 
     const reader = new Reader();
 
-    removeUnusedComment(text)
+    text
       .split("\n")
+      .map(removeUnusedComment)
       .map((line) => {
         const incomplete = reader.readLine(line);
+        console.log("incomplete", line, incomplete, reader.data);
 
         if (!incomplete) {
-          push(data, reader.data);
+          if (Object.keys(reader.data).length > 0) {
+            push(data, reader.data);
+            console.log("complete ", reader.data);
+          }
           delete reader.data;
           delete reader.previousKey;
           delete reader.previousIndex;
         }
       });
+
+    if (reader.data && Object.keys(reader.data).length > 0) {
+      console.log("final push");
+      push(data, reader.data);
+      delete reader.data;
+      delete reader.previousKey;
+      delete reader.previousIndex;
+    }
 
     return data.map(validate);
   }
@@ -259,28 +284,29 @@ class POFormat {
             .join(" ")}\n`;
         }
 
-        if (d.msgctxt && d.msgctxt !== "default") {
-          accumulator += `${prefix}msgctxt ${JSON.stringify(d.msgctxt)}\n`;
+        if (typeof d.msgctxt === "string" && d.msgctxt !== "default") {
+          const tag = `${prefix}msgctxt `;
+          accumulator += `${tag}${unbreakLines(tag, d.msgctxt)}\n`;
         }
 
-        if (Object.hasOwnProperty.call(d, "msgid")) {
-          accumulator += `${prefix}msgid ${unbreakLines(d.msgid)}\n`;
+        if (typeof d.msgid === "string") {
+          const tag = `${prefix}msgid `;
+          accumulator += `${tag}${unbreakLines(tag, d.msgid)}\n`;
         }
 
-        if (Object.hasOwnProperty.call(d, "msgidPlural")) {
-          accumulator += `${prefix}msgid_plural ${unbreakLines(
-            d.msgidPlural,
-          )}\n`;
+        if (typeof d.msgidPlural === "string") {
+          const tag = `${prefix}msgid_plural `;
+          accumulator += `${tag}${unbreakLines(tag, d.msgidPlural)}\n`;
         }
 
         if (d.msgstr !== undefined) {
           if (typeof d.msgstr === "string") {
-            accumulator += `${prefix}msgstr ${unbreakLines(d.msgstr)}\n`;
+            const tag = `${prefix}msgstr `;
+            accumulator += `${tag}${unbreakLines(tag, d.msgstr)}\n`;
           } else {
             Object.entries(d.msgstr).forEach(([index, msgstr]) => {
-              accumulator += `${prefix}msgstr[${index}] ${unbreakLines(
-                msgstr,
-              )}\n`;
+              const tag = `${prefix}msgstr[${index}] `;
+              accumulator += `${tag}${unbreakLines(tag, msgstr)}\n`;
             });
           }
         }
