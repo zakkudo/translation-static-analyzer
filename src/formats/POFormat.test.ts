@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-escape */
-import { ValidationError } from "../errors";
+import { ParsingError, ValidationError } from "../errors";
 import POFormat from "./POFormat";
 
 describe("formats/POFormat", () => {
@@ -97,22 +97,14 @@ msgstr[2] "localized test messages"
       ]);
     });
 
-    it("handles missing index for msgid_plural entry gracefully", () => {
-      expect(
+    it("throws an exception when missing index for msgid_plural entry", () => {
+      expect(() =>
         POFormat.parse(`msgid "test message"
 msgid_plural "test messages"
 msgstr[] "localized test message"
 msgstr[2] "localized test messages"
 `),
-      ).toEqual([
-        {
-          msgid: "test message",
-          msgidPlural: "test messages",
-          msgstr: {
-            [2]: "localized test messages",
-          },
-        },
-      ]);
+      ).toThrow(new ParsingError('msgstr[] "localized test message"'));
     });
 
     it("reassmbles lines", () => {

@@ -1,3 +1,4 @@
+import { ParsingError } from "src/errors";
 import { type LocalizationItem } from "src/types";
 import validate from "src/validate";
 
@@ -35,10 +36,6 @@ const unusedPattern = /^#~ /;
  * @private
  */
 function removeUnusedComment(line: string): string {
-  console.log(
-    JSON.stringify(line),
-    JSON.stringify(line.replace(unusedPattern, "")),
-  );
   return line.replace(unusedPattern, "");
 }
 
@@ -147,8 +144,10 @@ class Reader {
         }
       }
       return true;
-    } else {
+    } else if (line.trim() === "") {
       return false;
+    } else {
+      throw new ParsingError(line);
     }
   }
 }
@@ -161,24 +160,30 @@ const unbreakLines = (tag: string, text: string): string => {
   let tagLength = tag.length;
   const maxLength = 80;
 
-  const serialized = JSON.stringify(text).slice(1, -1);
   const out: string[] = [];
 
-  serialized.split("\\n").forEach((s, index, list) => {
-    let buffer = s;
+  text
+    .split("\n")
+    .map((l) => JSON.stringify(l).slice(1, -1))
+    .forEach((s, index, list) => {
+      let buffer = s;
 
-    if (index < list.length - 1) {
-      buffer += "\\n";
-    }
+      if (index < list.length - 1) {
+        buffer += "\\n";
+      }
 
-    while (buffer.length > 0) {
-      const before = buffer.slice(0, maxLength - tagLength);
-      buffer = buffer.slice(maxLength - tagLength, -1);
-      tagLength = 0;
-      out.push(`"${before}"`);
-    }
-    console.log("unbreaklines", out.join("\n"));
-  });
+      if (buffer.length > 0) {
+        while (buffer.length > 0) {
+          const before = buffer.slice(0, maxLength - tagLength);
+          buffer = buffer.slice(maxLength - tagLength, -1);
+          tagLength = 0;
+          out.push(`"${before}"`);
+        }
+      } else {
+        tagLength = 0;
+        out.push(`""`);
+      }
+    });
 
   if (out.length > 0) {
     return out.join("\n");
@@ -238,12 +243,10 @@ class POFormat {
       .map(removeUnusedComment)
       .map((line) => {
         const incomplete = reader.readLine(line);
-        console.log("incomplete", line, incomplete, reader.data);
 
         if (!incomplete) {
           if (Object.keys(reader.data).length > 0) {
             push(data, reader.data);
-            console.log("complete ", reader.data);
           }
           delete reader.data;
           delete reader.previousKey;
@@ -252,7 +255,6 @@ class POFormat {
       });
 
     if (reader.data && Object.keys(reader.data).length > 0) {
-      console.log("final push");
       push(data, reader.data);
       delete reader.data;
       delete reader.previousKey;

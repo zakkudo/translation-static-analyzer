@@ -6,7 +6,7 @@ class ValidationError extends Error {
   constructor(message: string, item: LocalizationItem) {
     super(message);
 
-    this.name = "FormatError";
+    this.name = "ValidationError";
     this.item = item;
   }
 }
