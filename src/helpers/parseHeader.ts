@@ -15,9 +15,8 @@ type Headers = {
   "X-Generator"?: string;
   "Last-Translator"?: string;
   "Plural-Forms": string;
-  "Language"?: string;
+  Language?: string;
 };
-
 
 /**
  * @internal
@@ -36,7 +35,7 @@ function parsePluralForms(locale: string, text = ""): Plurals {
   if (pluralValue) {
     const countToIndexImplementation = new Function(
       "n",
-      `return ${pluralValue};`
+      `return ${pluralValue};`,
     );
 
     const countToIndex = (n: number): number => {
@@ -73,7 +72,7 @@ function parseHeaders(locale: string, text = ""): Headers {
   const pluralForms = headers["Plural-Forms"];
   const plurals = parsePluralForms(locale, pluralForms);
 
-  return { plurals, headers };
+  return { headers, plurals };
 }
 
 export default parseHeaders;

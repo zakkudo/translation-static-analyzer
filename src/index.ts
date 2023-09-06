@@ -1,12 +1,14 @@
-import fs from "fs";
-import console from "console";
 import glob from "glob";
-import vm from "vm";
-import escape from "./escape";
-import readString from "./readString";
-import hasTranslation from "./hasTranslation";
-import isSubPath from "./isSubPath";
-import parseHeaders from "./parseHeaders";
+import console from "node:console";
+import fs from "node:fs";
+import vm from "node:vm";
+import {
+  escape,
+  hasTranslation,
+  isSubPath,
+  parseHeader,
+  readString,
+} from "src/helpers";
 
 /*
 import equal from "deep-equal";
@@ -559,18 +561,18 @@ class TranslationStaticAnalyzer {
 
   constructor({
     debug = false,
-    locales,
-    include,
     exclude,
     gettextFunctionNames = DEFAULT_FUNCTION_MAPPING,
+    include,
+    locales,
   }: Options) {
     this.options = {
       debug,
-      locales,
-      include,
       exclude,
       gettextFunctionNames,
       importPatterns = DEFAULT_IMPORT_PATTERNS,
+      include,
+      locales,
     };
   }
 
@@ -580,11 +582,11 @@ class TranslationStaticAnalyzer {
    */
   generate(dependencies) {
     //writeToTarget logic
-    const headers = parseHeaders();
+    const headers = parseHeader();
   }
 
   private calculateFileDelta(filter?: string[]): FileDelta {
-    const { include, exclude } = this.options;
+    const { exclude, include } = this.options;
     const all = calculateFiles(include, exclude);
     let modified = all;
     let removed = new Set([]);
@@ -608,8 +610,8 @@ class TranslationStaticAnalyzer {
     const usagesByKey = (this.usagesByKey = new Map());
     const keysByFilename = (this.keysByFilename = new Map());
     const referenceTemplate = (this.referenceTemplate = {});
-    const { sourceByFilename, gettextFunctionNames } = this;
-    const { all, removed, modified } = delta;
+    const { gettextFunctionNames, sourceByFilename } = this;
+    const { all, modified, removed } = delta;
     const context = vm.createContext({
       [gettextFunctionNames.gettext]: gettext,
       [gettextFunctionNames.ngettext]: ngettext,
@@ -624,7 +626,7 @@ class TranslationStaticAnalyzer {
 
       for (const t of translationCalls) {
         try {
-          const { lineNumber, fn } = t;
+          const { fn, lineNumber } = t;
           const { key, plural } = vm.runInContext(fn, context);
           let usages = usagesByKey.get(key);
 
@@ -651,7 +653,7 @@ class TranslationStaticAnalyzer {
     if (options.debug) {
       console.log(
         "Parsed keys",
-        JSON.stringify(Array.from(usagesByKey.keys()), null, 4)
+        JSON.stringify(Array.from(usagesByKey.keys()), null, 4),
       );
     }
   }
@@ -662,7 +664,7 @@ class TranslationStaticAnalyzer {
    * @internal
    */
   private readSourceFiles(delta: FileDelta) {
-    const { locales, debug } = this.options;
+    const { debug, locales } = this.options;
     const { modified, removed } = delta;
     const sourceByFilename = this.sourceByFilename;
     const keysByFilename = this.keysByFilename;

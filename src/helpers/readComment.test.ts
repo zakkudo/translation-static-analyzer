@@ -8,8 +8,8 @@ describe('readString', () => {
         index: 9,
         key: 'b',
         lineNumber: 0,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
@@ -19,20 +19,20 @@ describe('readString', () => {
         index: 11,
         key: "a's",
         lineNumber: 0,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
     it('adds multi-line block comments when directly above', () => {
       expect(readString(`/*test\ncomment*/\n__('b') c`)).toEqual([{
+        comments: 'test\ncomment',
         fn: `__("b")`,
         index: 24,
         key: 'b',
-        comments: 'test\ncomment',
         lineNumber: 2,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
@@ -43,8 +43,8 @@ describe('readString', () => {
         index: 23,
         key: 'b',
         lineNumber: 1,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
@@ -55,8 +55,8 @@ describe('readString', () => {
         index: 23,
         key: 'b',
         lineNumber: 1,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
@@ -66,8 +66,8 @@ describe('readString', () => {
         index: 24,
         key: 'b',
         lineNumber: 2,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
@@ -78,8 +78,8 @@ describe('readString', () => {
         index: 26,
         key: 'b',
         lineNumber: 0,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
@@ -89,8 +89,8 @@ describe('readString', () => {
         index: 24,
         key: 'b',
         lineNumber: 0,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
@@ -104,8 +104,8 @@ describe('readString', () => {
         index: 7,
         key: 'b',
         lineNumber: 0,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
@@ -119,15 +119,15 @@ describe('readString', () => {
         index: 9,
         key: 'b',
         lineNumber: 0,
-        particular: false,
         number: false,
+        particular: false,
       }, {
         fn: '__("b")',
         index: 17,
         key: 'b',
         lineNumber: 0,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
 
@@ -137,15 +137,15 @@ describe('readString', () => {
         index: 9,
         key: 'b',
         lineNumber: 0,
-        particular: false,
         number: false,
+        particular: false,
       }, {
         fn: '__("b")',
         index: 17,
         key: 'b',
         lineNumber: 1,
-        particular: false,
         number: false,
+        particular: false,
       }]);
     });
   });
@@ -158,8 +158,8 @@ describe('readString', () => {
         index: 15,
         key: 'c',
         lineNumber: 0,
-        particular: true,
         number: false,
+        particular: true,
       }]);
     });
 
@@ -174,16 +174,16 @@ describe('readString', () => {
         index: 15,
         key: 'c',
         lineNumber: 0,
-        particular: true,
         number: false,
+        particular: true,
       }, {
         context: 'b',
         fn: '__p("b","c")',
         index: 29,
         key: 'c',
         lineNumber: 0,
-        particular: true,
         number: false,
+        particular: true,
       }]);
     });
 
@@ -194,16 +194,16 @@ describe('readString', () => {
         index: 15,
         key: 'c',
         lineNumber: 0,
-        particular: true,
         number: false,
+        particular: true,
       }, {
         context: 'b',
         fn: '__p("b","c")',
         index: 29,
         key: 'c',
         lineNumber: 1,
-        particular: true,
         number: false,
+        particular: true,
       }]);
     });
   });
@@ -215,8 +215,8 @@ describe('readString', () => {
         index: 29,
         key: '%d cat',
         lineNumber: 0,
-        particular: false,
         number: true,
+        particular: false,
         plural: '%d cats',
       }]);
     });
@@ -227,16 +227,16 @@ describe('readString', () => {
         index: 29,
         key: '%d cat',
         lineNumber: 0,
-        particular: false,
         number: true,
+        particular: false,
         plural: "%d cats",
       }, {
         fn: '__n("%d cat","%d cats")',
         index: 57,
         key: '%d cat',
         lineNumber: 0,
-        particular: false,
         number: true,
+        particular: false,
         plural: "%d cats",
       }]);
     });
@@ -247,16 +247,16 @@ describe('readString', () => {
         index: 29,
         key: '%d cat',
         lineNumber: 0,
-        particular: false,
         number: true,
+        particular: false,
         plural: "%d cats",
       }, {
         fn: '__n("%d cat","%d cats")',
         index: 57,
         key: '%d cat',
         lineNumber: 1,
-        particular: false,
         number: true,
+        particular: false,
         plural: "%d cats",
       }]);
     });
@@ -270,8 +270,8 @@ describe('readString', () => {
         index: 35,
         key: '%d cat',
         lineNumber: 0,
-        particular: true,
         number: true,
+        particular: true,
         plural: "%d cats",
       }]);
     });
@@ -283,8 +283,8 @@ describe('readString', () => {
         index: 35,
         key: '%d cat',
         lineNumber: 0,
-        particular: true,
         number: true,
+        particular: true,
         plural: "%d cats",
       }, {
         context: 'b',
@@ -292,8 +292,8 @@ describe('readString', () => {
         index: 69,
         key: '%d cat',
         lineNumber: 0,
-        particular: true,
         number: true,
+        particular: true,
         plural: "%d cats",
       }]);
     });
@@ -305,8 +305,8 @@ describe('readString', () => {
         index: 35,
         key: '%d cat',
         lineNumber: 0,
-        particular: true,
         number: true,
+        particular: true,
         plural: "%d cats",
       }, {
         context: 'b',
@@ -314,8 +314,8 @@ describe('readString', () => {
         index: 69,
         key: '%d cat',
         lineNumber: 1,
-        particular: true,
         number: true,
+        particular: true,
         plural: "%d cats",
       }]);
     });

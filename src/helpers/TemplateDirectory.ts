@@ -1,10 +1,10 @@
-import fs from 'fs-extra';
 import path from 'node:path';
-import PO from './formats/PO';
+import fs from 'fs-extra';
+import FormatParsingError from './errors/FormatParsingError';
+import UnsupportedFormatError from './errors/UnsupportedFormatError';
 import JSON from './formats/JSON';
 import JSON5 from './formats/JSON5';
-import UnsupportedFormatError from './errors/UnsupportedFormatError';
-import FormatParsingError from './errors/FormatParsingError';
+import PO from './formats/PO';
 
 const FALLBACK_FORMAT = 'po';
 

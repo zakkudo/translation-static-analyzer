@@ -1,12 +1,19 @@
-import readCharacter from "./readCharacter";
+import readCharacter from "../readCharacter";
 
-function readCharacterWithErrorHandling(text: string, state: State): State {
-  const currentState = Object.assign({}, state);
+type FunctionMapping = {
+  gettext: string;
+  ngettext: string;
+  npgettext: string;
+  pgettext: string;
+};
+
+function readCharacterWithErrorHandling(text: string, state: State, gettextFunctionNames : FullscreenNavigationUI): State {
+  const currentState = { ...state };
   let nextState;
 
   while (nextState === undefined) {
     try {
-      nextState = readCharacter(text, currentState);
+      nextState = readCharacter(text, currentState, gettextFunctionNames);
     } catch (e) {
       if (currentState.stack.length) {
         currentState.stack = currentState.stack.slice(1);
@@ -40,16 +47,16 @@ type LocalizationCall = {
  * @return {Array<String>} The strings
  * @private
  */
-function readString(text: string): LocalizationCall[] {
+function readString(text: string, gettextFunctionNames : FunctionMapping): LocalizationCall[] {
   let state: State = {
     index: 0,
-    stack: [],
     lineNumber: 0,
+    stack: [],
   };
   let previousIndex = 0;
   const localizationCalls: LocalizationCall[] = [];
 
-  while ((state = readCharacterWithErrorHandling(text, state)) !== null) {
+  while ((state = readCharacterWithErrorHandling(text, state, gettextFunctionNames)) !== null) {
     if (state.index === previousIndex) {
       const serializedState = JSON.stringify(state, null, 4);
       const slice = text.slice(state.index);
@@ -59,25 +66,27 @@ function readString(text: string): LocalizationCall[] {
       );
     }
 
+    console.log(state);
+
     if (state.localizationCall) {
       const {
         extractedComments,
+        fn,
+        msgctxt,
         msgid,
         msgidPlural,
-        msgctxt,
-        fn,
       } = state.localizationCall;
       const { index, lineNumber } = state;
 
       localizationCalls.push([
         {
-          fn,
-          lineNumber,
-          index,
           extractedComments,
+          fn,
+          index,
+          lineNumber,
+          msgctxt,
           msgid,
           msgidPlural,
-          msgctxt,
         },
       ]);
     }

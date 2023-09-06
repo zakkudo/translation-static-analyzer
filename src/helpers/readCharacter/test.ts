@@ -2,7 +2,7 @@ import readCharacter from "../readCharacter";
 
 describe("plugins/readCharacter", () => {
   it("reads letters with no special meaning", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = "abc";
     const actual = [];
 
@@ -13,27 +13,27 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 2,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 3,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("reads a string", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = 'a"b"c';
     const actual = [];
 
@@ -44,39 +44,39 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 2,
-        stack: ['"'],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ['"'],
       },
       {
         index: 3,
-        stack: ['"'],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ['"'],
       },
       {
         index: 4,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 5,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("reads a string surrounded in parenthesis", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = 'a("b")c';
     const actual = [];
 
@@ -87,51 +87,51 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 2,
-        stack: ["("],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ["("],
       },
       {
         index: 3,
-        stack: ['"', "("],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ['"', "("],
       },
       {
         index: 4,
-        stack: ['"', "("],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ['"', "("],
       },
       {
         index: 5,
-        stack: ["("],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ["("],
       },
       {
         index: 6,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 7,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("doesn't add quoted parenthesis to the stack", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = 'a"(b)"c';
     const actual = [];
 
@@ -142,51 +142,51 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 2,
-        stack: ['"'],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ['"'],
       },
       {
         index: 3,
-        stack: ['"'],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ['"'],
       },
       {
         index: 4,
-        stack: ['"'],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ['"'],
       },
       {
         index: 5,
-        stack: ['"'],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ['"'],
       },
       {
         index: 6,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 7,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("doesn't add commented quotes", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = '//"\n""';
     const actual = [];
 
@@ -197,39 +197,39 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 2,
-        stack: ["//"],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ["//"],
       },
       {
         index: 3,
-        stack: ["//"],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ["//"],
       },
       {
         index: 4,
-        stack: [],
-        localizationCall: null,
         lineNumber: 1,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 5,
-        stack: ['"'],
-        localizationCall: null,
         lineNumber: 1,
+        localizationCall: null,
+        stack: ['"'],
       },
       {
         index: 6,
-        stack: [],
-        localizationCall: null,
         lineNumber: 1,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("multiline comments comment quotes", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = '/*"\n*/""';
     const actual = [];
 
@@ -240,45 +240,45 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 2,
-        stack: ["/*"],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ["/*"],
       },
       {
         index: 3,
-        stack: ["/*"],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ["/*"],
       },
       {
         index: 4,
-        stack: ["/*"],
-        localizationCall: null,
         lineNumber: 1,
+        localizationCall: null,
+        stack: ["/*"],
       },
       {
         index: 6,
-        stack: [],
-        localizationCall: null,
         lineNumber: 1,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 7,
-        stack: ['"'],
-        localizationCall: null,
         lineNumber: 1,
+        localizationCall: null,
+        stack: ['"'],
       },
       {
         index: 8,
-        stack: [],
-        localizationCall: null,
         lineNumber: 1,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
-  fit("parses basic translation function", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+  it.only("parses basic translation function", () => {
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = '__("a")b';
     const actual = [];
 
@@ -289,26 +289,26 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 7,
-        stack: [],
         lineNumber: 0,
         localizationCall: {
-          key: "a",
           fn: '__("a")',
-          plural: false,
+          key: "a",
           particular: false,
+          plural: false,
         },
+        stack: [],
       },
       {
         index: 8,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("parses basic translation function with context", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = '__p("a", "b")c';
     const actual = [];
 
@@ -319,27 +319,27 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 13,
-        stack: [],
         lineNumber: 0,
         localizationCall: {
           context: "a",
-          key: "b",
           fn: '__p("a", "b")',
-          plural: false,
+          key: "b",
           particular: true,
+          plural: false,
         },
+        stack: [],
       },
       {
         index: 14,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("parses basic plural translation function", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = '__n("%d cat", "%d cats", 1)b';
     const actual = [];
 
@@ -350,26 +350,26 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 27,
-        stack: [],
         lineNumber: 0,
         localizationCall: {
-          key: "%d cat",
           fn: '__n("%d cat", "%d cats", 1)',
-          plural: true,
+          key: "%d cat",
           particular: false,
+          plural: true,
         },
+        stack: [],
       },
       {
         index: 28,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("parses basic plural translation function with context", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = '__np("a", "%d cat", "%d cats", 1)b';
     const actual = [];
 
@@ -380,28 +380,28 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 33,
-        stack: [],
         lineNumber: 0,
         localizationCall: {
-          key: "%d cat",
           context: "a",
           fn: '__np("a", "%d cat", "%d cats", 1)',
-          plural: true,
+          key: "%d cat",
           particular: true,
+          plural: true,
         },
+        stack: [],
       },
       {
         index: 34,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   describe("polymer-style template strings", () => {
     it("parses basic translation function in [[]] interpolation string", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = '`[[__("a")]]`';
       const actual = [];
 
@@ -412,44 +412,44 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: ["`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["`"],
         },
         {
           index: 3,
-          stack: ["[[", "`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["[[", "`"],
         },
         {
           index: 10,
-          stack: ["[[", "`"],
           lineNumber: 0,
           localizationCall: {
-            key: "a",
             fn: '__("a")',
+            key: "a",
             particular: false,
             plural: false,
           },
+          stack: ["[[", "`"],
         },
         {
           index: 12,
-          stack: ["`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["`"],
         },
         {
           index: 13,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
 
     it("skips [ interpolation when not part of a string", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = "a[[b";
       const actual = [];
 
@@ -460,33 +460,33 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 2,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 3,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 4,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
 
     it("skips ]] interpolation when not started", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = "a]]b";
       const actual = [];
 
@@ -497,27 +497,27 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 2,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 3,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 4,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
@@ -525,7 +525,7 @@ describe("plugins/readCharacter", () => {
 
   describe("Angular style template strings", () => {
     it("parses basic translation function in {{}} interpolation string", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = '`{{__("a")}}`';
       const actual = [];
 
@@ -536,44 +536,44 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: ["`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["`"],
         },
         {
           index: 3,
-          stack: ["{{", "`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["{{", "`"],
         },
         {
           index: 10,
-          stack: ["{{", "`"],
           lineNumber: 0,
           localizationCall: {
-            key: "a",
             fn: '__("a")',
+            key: "a",
             particular: false,
             plural: false,
           },
+          stack: ["{{", "`"],
         },
         {
           index: 12,
-          stack: ["`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["`"],
         },
         {
           index: 13,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
 
     it("skips {{ interpolation when not part of a string", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = "a{{b";
       const actual = [];
 
@@ -584,33 +584,33 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 2,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 3,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 4,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
 
     it("skips {{ interpolation when not on stack", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = "a}}b";
       const actual = [];
 
@@ -621,27 +621,27 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 2,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 3,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 4,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
@@ -649,7 +649,7 @@ describe("plugins/readCharacter", () => {
 
   describe("Javscript style template strings", () => {
     it("parses basic translation function in `${}` interpolation string", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = '`${__("a")}`';
       const actual = [];
 
@@ -660,44 +660,44 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: ["`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["`"],
         },
         {
           index: 3,
-          stack: ["${", "`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["${", "`"],
         },
         {
           index: 10,
-          stack: ["${", "`"],
           lineNumber: 0,
           localizationCall: {
-            key: "a",
             fn: '__("a")',
+            key: "a",
             particular: false,
             plural: false,
           },
+          stack: ["${", "`"],
         },
         {
           index: 11,
-          stack: ["`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["`"],
         },
         {
           index: 12,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
 
     it("skips $ interpolation when not part of a string", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = "a${b";
       const actual = [];
 
@@ -708,27 +708,27 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 2,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 3,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 4,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
@@ -736,7 +736,7 @@ describe("plugins/readCharacter", () => {
 
   describe("EJS style template strings", () => {
     it("parses basic translation function in <% %> interpolation string", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = '`<%:__("a")%>`';
       const actual = [];
 
@@ -747,50 +747,50 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: ["`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["`"],
         },
         {
           index: 3,
-          stack: ["<%", "`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["<%", "`"],
         },
         {
           index: 4,
-          stack: ["<%", "`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["<%", "`"],
         },
         {
           index: 11,
-          stack: ["<%", "`"],
           lineNumber: 0,
           localizationCall: {
-            key: "a",
             fn: '__("a")',
-            plural: false,
+            key: "a",
             particular: false,
+            plural: false,
           },
+          stack: ["<%", "`"],
         },
         {
           index: 13,
-          stack: ["`"],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: ["`"],
         },
         {
           index: 14,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
 
     it("skips < interpolation when no %", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = "a<b";
       const actual = [];
 
@@ -801,27 +801,27 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 2,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 3,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
 
     it("skips > interpolation when no %", () => {
-      let state = { index: 0, stack: [], lineNumber: 0 };
+      let state = { index: 0, lineNumber: 0, stack: [] };
       const text = "a%>b";
       const actual = [];
 
@@ -832,34 +832,34 @@ describe("plugins/readCharacter", () => {
       expect(actual).toEqual([
         {
           index: 1,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 2,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 3,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
         {
           index: 4,
-          stack: [],
-          localizationCall: null,
           lineNumber: 0,
+          localizationCall: null,
+          stack: [],
         },
       ]);
     });
   });
 
   it("parses template translation function", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = "__`a`b";
     const actual = [];
 
@@ -870,26 +870,26 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 5,
-        stack: [],
         lineNumber: 0,
         localizationCall: {
-          key: "a",
           fn: "__`a`",
+          key: "a",
           particular: false,
           plural: false,
         },
+        stack: [],
       },
       {
         index: 6,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("throws an exception when there is no closing quote", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = '"';
     const actual = [];
 
@@ -902,15 +902,15 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: ['"'],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ['"'],
       },
     ]);
   });
 
   it("throws an exception when parenthesis is not closed", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = "(";
     const actual = [];
 
@@ -923,15 +923,15 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: ["("],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ["("],
       },
     ]);
   });
 
   it("throws an exception when a close parenthesis is used when there is no open", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = ")";
     const actual = [];
 
@@ -945,7 +945,7 @@ describe("plugins/readCharacter", () => {
   });
 
   it("throws an error when there is no string literal for the translation", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = "__(fish)";
     const actual = [];
 
@@ -959,7 +959,7 @@ describe("plugins/readCharacter", () => {
   });
 
   it("throws an error if quote is not the first character", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = '__(,"fish")';
     const actual = [];
 
@@ -973,7 +973,7 @@ describe("plugins/readCharacter", () => {
   });
 
   it("throws an error if string is empty", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = '__("")';
     const actual = [];
 
@@ -987,7 +987,7 @@ describe("plugins/readCharacter", () => {
   });
 
   it("iterates * as a normal character", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = "a*b";
     const actual = [];
 
@@ -998,27 +998,27 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 2,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 3,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("iterates / as a normal character", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = "a/b";
     const actual = [];
 
@@ -1029,27 +1029,27 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 2,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 3,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("iterates _ as a normal character", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = "a_b";
     const actual = [];
 
@@ -1060,27 +1060,27 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 2,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 3,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
     ]);
   });
 
   it("escapes _", () => {
-    let state = { index: 0, stack: [], lineNumber: 0 };
+    let state = { index: 0, lineNumber: 0, stack: [] };
     const text = "a//_";
     const actual = [];
 
@@ -1091,21 +1091,21 @@ describe("plugins/readCharacter", () => {
     expect(actual).toEqual([
       {
         index: 1,
-        stack: [],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: [],
       },
       {
         index: 3,
-        stack: ["//"],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ["//"],
       },
       {
         index: 4,
-        stack: ["//"],
-        localizationCall: null,
         lineNumber: 0,
+        localizationCall: null,
+        stack: ["//"],
       },
     ]);
   });

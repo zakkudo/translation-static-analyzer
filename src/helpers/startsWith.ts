@@ -5,8 +5,12 @@
  * @return True if the substring matches the text at the offset
  * @internal
  */
-function startsWith(haystack : string, index : number, needle : string) : boolean {
+const startsWith = (
+  haystack: string,
+  index: number,
+  needle: string,
+): boolean => {
   return haystack.substring(index, index + needle.length) === needle;
-}
+};
 
 export default startsWith;

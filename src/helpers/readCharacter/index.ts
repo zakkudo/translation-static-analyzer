@@ -1,15 +1,8 @@
 import isEscapeCharacter from "../isEscapeCharacter";
 import isLocalizationFunctionStart from "../isLocalizationFunctionStart";
 import isQuoteCharacter from "../isQuoteCharacter";
-import startsWith from "../startsWith";
 import parseLocalizationFunction from "../parseLocalizationFunction";
-
-type FunctionMapping = {
-  gettext: string;
-  ngettext: string;
-  npgettext: string;
-  pgettext: string;
-};
+import startsWith from "../startsWith";
 
 type State = {
   index: number;
@@ -27,13 +20,13 @@ type LocalizationCall = {
 function push(stack: string[], value: string) {
   const copy = [value].concat(stack);
 
-  return { stack: copy, head: copy[0] };
+  return { head: copy[0], stack: copy };
 }
 
 function pop(stack: string[]) {
   const copy = stack.slice(1);
 
-  return { stack: copy, head: copy[0] };
+  return { head: copy[0], stack: copy };
 }
 
 type Stack = {
@@ -44,23 +37,24 @@ type Stack = {
 
 /**
  * @param text - The text blob
- * @param index - The offset on the text
- * @param stack - The current code stack
- * @param lineNumber - The current line number
+ * @param stack - The current iteration context
+ * @param stack.index - The offset on the text
+ * @param stack.lineNumber - The current line number
+ * @param stack.stack - The parenthesis and quote stack
  * @return The updated read state which can be passed back into
  * @throws Syntax
  * readCharacter to read the next state
  * @private
  */
-function readCharacter(text: string, { index, stack, lineNumber }: Stack, gettextFuntionNames : FunctionMapping) : State {
+function readCharacter(
+  text: string,
+  { index, lineNumber, stack }: Stack,
+): State {
   const character = text.charAt(index);
   let head = stack[0];
   const escaped = isEscapeCharacter(head);
   let testString;
   let localizationCall: string = null;
-
-  const gettextStrings = Object.values(gettextFuntionNames);
-  const mapping = new Map(Object.entries(gettextFuntionNames).map(([a, b]) => [b, a]));
 
   if (character === "") {
     while (head === "//") {
@@ -69,15 +63,15 @@ function readCharacter(text: string, { index, stack, lineNumber }: Stack, gettex
 
     if (stack.length) {
       throw new SyntaxError(
-        `text ended with unclosed stack items ${JSON.stringify(stack, null, 4)}`
+        `text ended with unclosed stack items ${JSON.stringify(
+          stack,
+          null,
+          4,
+        )}`,
       );
     }
 
     return null;
-  }
-
-  if (startsWith()) {
-    something
   }
 
   switch (character) {
@@ -87,8 +81,8 @@ function readCharacter(text: string, { index, stack, lineNumber }: Stack, gettex
         if (isLocalizationFunctionStart(text, { index })) {
           ({ fn: localizationCall } = parseLocalizationFunction(text, {
             index,
-            stack,
             lineNumber,
+            stack,
           }));
         } else {
           index += 1;
@@ -216,6 +210,6 @@ function readCharacter(text: string, { index, stack, lineNumber }: Stack, gettex
       break;
   }
 
-  return { index, stack, lineNumber, localizationCall };
+  return { index, lineNumber, localizationCall, stack };
 }
 export default readCharacter;

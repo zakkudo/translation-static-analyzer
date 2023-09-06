@@ -1,5 +1,5 @@
-import parseHeader from './parseHeader';
 import InvalidTemplateHeaderError from './errors/InvalidTemplateHeaderError';
+import parseHeader from './parseHeader';
 
 describe('parseHeader', () => {
   it('parses simple plural forms', () => {
@@ -79,19 +79,19 @@ Content-Transfer-Encoding: test content transfer encoding
 Plural-Forms: nplurals=2; plural=n != 1;
 `
     expect(parseHeader(header)).toEqual(new Map(Object.entries({
-      "Project-Id-Version": "test product id",
-      "Report-Msgid-Bugs-To": "test webpage url",
-      "POT-Creation-Date": "test creation date",
-      "PO-Revision-Date": "test revision date",
-      "Last-Translator": "test last translator",
-      "Language-Team": "test language team",
-      "MIME-Version": "test mime version",
-      "Content-Type": "test content type",
       "Content-Transfer-Encoding": "test content transfer encoding",
+      "Content-Type": "test content type",
+      "Language-Team": "test language team",
+      "Last-Translator": "test last translator",
+      "MIME-Version": "test mime version",
       "Plural-Forms": {
         "nplurals": 2,
         "plural": "n != 1"
-      }
+      },
+      "PO-Revision-Date": "test revision date",
+      "POT-Creation-Date": "test creation date",
+      "Project-Id-Version": "test product id",
+      "Report-Msgid-Bugs-To": "test webpage url"
     })));
   });
 });

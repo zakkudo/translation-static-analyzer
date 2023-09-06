@@ -76,3 +76,6 @@ type LocalizationItemPlural = {
 export type LocalizationItem =
   | LocalizationItemSingular
   | LocalizationItemPlural;
+
+
+export type ReadIterator = Readonly<{ index: number; stack: string[]; lineNumber: number }>;
