@@ -4,14 +4,14 @@ type Data = Record<string, string | Record<string, string>>;
  * @return The scrubbed localization tree
  * @private
  */
-const scrubLocalization = (data: Data) : Data => {
+const removeEmptyValues = (data: Data) : Data => {
   return Object.keys(data).reduce((accumulator, k) => {
     if (typeof data[k] === "string") {
       return { ...accumulator, [k]: "" };
     } else if (Object(data[k]) === data[k]) {
-      return { ...accumulator, [k]: scrubLocalization(data[k] as Data) };
+      return { ...accumulator, [k]: removeEmptyValues(data[k] as Data) };
     }
   }, {});
 };
 
-export default scrubLocalization;
+export default removeEmptyValues;

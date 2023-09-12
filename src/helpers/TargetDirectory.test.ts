@@ -1,13 +1,11 @@
+import { describe, it, jest } from "@jest/globals";
 import { readFileSync } from "node:fs";
 import TargetDirectory from "./TargetDirectory";
 
 jest.mock("node:fs");
+const readFileSyncMock = readFileSync as jest.MockedFunction<typeof readFileSync>;
 
 describe("TargetDirectory", () => {
-  afterEach(() => {
-    fs.mockReset();
-  });
-
   describe("buildFilename", () => {
     it("creates filename", () => {
       const directory = new TargetDirectory("/test/path");
@@ -65,7 +63,7 @@ describe("TargetDirectory", () => {
         ],
       });
 
-      expect(fs.actions).toEqual([
+      expect(actions).toEqual([
         {
           action: "write",
           data: `{
@@ -112,7 +110,7 @@ describe("TargetDirectory", () => {
         },
       ]);
 
-      expect(fs.actions).toEqual([
+      expect(actions).toEqual([
         {
           action: "write",
           data: `{
@@ -208,7 +206,7 @@ describe("TargetDirectory", () => {
 
       directory.ensureDirectory();
 
-      expect(fs.actions).toEqual([
+      expect(actions).toEqual([
         {
           action: "write",
           filename: "/test/path",

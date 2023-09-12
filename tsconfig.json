@@ -5,16 +5,18 @@
       "src": "src"
     },
     "module": "esnext",
-    "target": "es2015",
+    "target": "es2024",
     "declaration": true,
     "noImplicitAny": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "moduleResolution": "node",
     "sourceMap": true,
-    "outDir": "build"
+    "outDir": "build",
+    "types": ["node", "jest"],
+    "esModuleInterop": true,
+    "root": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/test.ts", "src/**/*.test.ts"]

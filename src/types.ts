@@ -1,50 +1,53 @@
-/*
-imsgid ""
-msgstr ""
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"X-Generator: localizely.com\n"
-"Last-Translator: localizely.com\n"
-"Language-Team: localizely.com\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: de\n"
+export type FormattedLocalizationItem = Record<
+  string,
+  string | Record<string, string>
+>;
 
-msgid "Demo application"
-msgstr "Demo-Anwendung"
+export type Plurals = {
+  length: number;
+  countToIndex: (count: number) => number;
+};
 
-#: polls/app.py:105
-msgid "Welcome %s"
-msgstr "Willkommen %s"
+const headers: (keyof Headers)[] = [
+  "Project-Id-Version",
+  "POT-Creation-Date",
+  "PO-Revision-Date",
+  "Language-Team",
+  "MIME-Version",
+  "Content-Type",
+  "Content-Transfer-Encoding",
+  "X-Generator",
+  "Last-Translator",
+  "Plural-Forms",
+  "Language",
+];
 
-# Since we use 2 placeholders in this example, we marked them with numbers
-# so it prints them properly in other languages, where their order maybe be switched
-#. First placeholder is current user's name, second one is a name of message sender
-msgid "Welcome back, %1$s! You have a new message from %2$s"
-msgstr "Willkommen zurück, %1$s! Sie haben eine neue Nachricht von %2$s"
-
-# This is a pluralized string. 
-# It chooses one of the plural forms depending on passed parameter
-msgid "You have %d new message" 
-msgid_plural "You have %d new messages" 
-msgstr[0] "Sie haben %d neue Nachricht" 
-msgstr[1] "Sie haben %d neue Nachrichten"
-
-# This text is written in two lines
-#, fuzzy
-msgid "We will guide you throughout the app\n"
-"Please select your role:"
-msgstr "Wir werden Sie durch die App führen\n"
-"Bitte wählen Sie Ihre Rolle:"
-
-# Don't forget, I want to remember something about this!
-#~ msgid "My web page"
-#~ msgstr "A minha página de web"
-*/
+export type Headers = Partial<{
+  "Project-Id-Version": string;
+  "POT-Creation-Date": string;
+  "PO-Revision-Date": string;
+  "Language-Team": string;
+  "MIME-Version": string;
+  "Content-Type": string;
+  "Content-Transfer-Encoding": string;
+  "X-Generator": string;
+  "Last-Translator": string;
+  /** @example
+   * Contains the information used for generating the Plurals
+   * type.
+   * ```
+   * Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;
+   * ```*/
+  "Plural-Forms": string;
+  Language: string;
+}>;
 
 type LocalizationItemSingular = {
+  /** Comments extracted from the source code for the translators. */
   developerComments?: string;
+  /** Flags for the translation.  In particular it is used to mark translations fuzzy. */
   flags?: string[];
+  /** Extra context for a translation to differenciate it. */
   msgctxt?: string;
   msgid: string;
   msgidPlural?: undefined;
@@ -77,5 +80,15 @@ export type LocalizationItem =
   | LocalizationItemSingular
   | LocalizationItemPlural;
 
+type LocalizationCall = {
+  fn: string;
+  lineNumber: number;
+  index: number;
+};
 
-export type ReadIterator = Readonly<{ index: number; stack: string[]; lineNumber: number }>;
+export type ReadIterator = Readonly<{
+  index: number;
+  stack: string[];
+  lineNumber: number;
+  localizationCall?: LocalizationCall
+}>;

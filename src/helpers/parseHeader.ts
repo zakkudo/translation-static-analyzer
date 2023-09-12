@@ -1,22 +1,18 @@
-type Plurals = {
-  length?: number;
-  countToIndex?: (count: number) => number;
-};
+import { type Headers, type Plurals } from 'src/types';
 
-type Headers = {
-  plurals: Plurals;
-  "Project-Id-Version"?: string;
-  "POT-Creation-Date"?: string;
-  "PO-Revision-Date"?: string;
-  "Language-Team"?: string;
-  "MIME-Version"?: string;
-  "Content-Type"?: string;
-  "Content-Transfer-Encoding"?: string;
-  "X-Generator"?: string;
-  "Last-Translator"?: string;
-  "Plural-Forms": string;
-  Language?: string;
-};
+const headerKeys: Readonly<(keyof Headers)[]> = Object.freeze([
+  "Project-Id-Version",
+  "POT-Creation-Date",
+  "PO-Revision-Date",
+  "Language-Team",
+  "MIME-Version",
+  "Content-Type",
+  "Content-Transfer-Encoding",
+  "X-Generator",
+  "Last-Translator",
+  "Plural-Forms",
+  "Language",
+]);
 
 /**
  * @internal
@@ -25,8 +21,7 @@ function parsePluralForms(locale: string, text = ""): Plurals {
   const [nplurals, plural] = `${text};`.split(";").map((p) => p.trim());
   const length = parseInt((nplurals.match(/nplurals=([0-9]+)/) || [])[1]);
   const pluralValue = (plural.match(/plural=([^;]+)/) || [])[1];
-
-  const out: Plurals = {};
+  const out: Partial<Plurals> = {};
 
   if (!Number.isNaN(length)) {
     out.length = length;
@@ -51,21 +46,30 @@ function parsePluralForms(locale: string, text = ""): Plurals {
     out.countToIndex = countToIndex;
   }
 
-  return out;
+  return out as Plurals;
 }
 
 /**
  * @internal
  */
-function parseHeaders(locale: string, text = ""): Headers {
+function parseHeaders(locale: string, text = ""): { headers: Headers, plurals: Plurals } {
   const lines = text.split("\n").map((l) => l.trim());
-  const headers: Record<string, string> = {};
+  const buffer: Record<string, string> = {};
+  const headers: Headers = {};
 
+  // Parse the headers not key-value pairs
   for (const l of lines) {
     const [key, value] = l.split(":", 2).map((p) => p.trim());
 
     if (key && value) {
-      headers[key] = value;
+      buffer[key] = value;
+    }
+  }
+
+  // Copy the ones that match valid keys
+  for (const h of headerKeys) {
+    if (buffer[h]) {
+      headers[h] = buffer[h];
     }
   }
 
